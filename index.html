@@ -2,37 +2,34 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>SPS Matrix - Ultimate DApp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏊 Safe Pool Smart | استخر ایمن هوشمند</title>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- فونت فارسی بهینه -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
     
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Ethers.js -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
     
     <style>
+        /* پایه‌های مدرن */
         :root {
             --primary: #6366f1;
-            --primary-dark: #4f46e5;
+            --primary-glow: #818cf8;
             --secondary: #10b981;
             --accent: #f59e0b;
-            --danger: #ef4444;
-            --purple: #8b5cf6;
-            --pink: #ec4899;
+            --accent-glow: #fbbf24;
             --dark: #0f172a;
             --darker: #020617;
             --light: #f8fafc;
-            --glass: rgba(255, 255, 255, 0.07);
-            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
             --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-            --gradient-rainbow: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899, #f59e0b, #10b981);
-            --gradient-glow: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8));
+            --gradient-glow: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
         }
         
         * {
@@ -43,7 +40,7 @@
         }
         
         body {
-            font-family: 'Vazirmatn', 'Poppins', sans-serif;
+            font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
             background: var(--darker);
             color: var(--light);
             min-height: 100vh;
@@ -51,211 +48,174 @@
             position: relative;
         }
         
-        /* پارتیکل‌های متحرک */
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            z-index: -3;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.06) 0%, transparent 50%);
-        }
-        
         /* افکت نور پس‌زمینه */
-        .light-effect {
+        .light-beam {
             position: fixed;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
             border-radius: 50%;
-            filter: blur(80px);
+            filter: blur(100px);
             z-index: -2;
-            animation: moveLight 20s infinite alternate ease-in-out;
+            animation: beamFloat 20s infinite alternate ease-in-out;
+            pointer-events: none;
         }
         
-        .light-effect-1 {
-            top: -200px;
-            left: -200px;
+        .light-beam-1 {
+            top: -300px;
+            left: -300px;
             animation-delay: 0s;
         }
         
-        .light-effect-2 {
-            bottom: -200px;
-            right: -200px;
-            animation-delay: 5s;
+        .light-beam-2 {
+            bottom: -300px;
+            right: -300px;
+            animation-delay: 10s;
         }
         
-        @keyframes moveLight {
+        @keyframes beamFloat {
             0% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(100px, 50px) scale(1.2); }
-            50% { transform: translate(-50px, 100px) scale(0.8); }
-            75% { transform: translate(150px, -50px) scale(1.1); }
-            100% { transform: translate(-100px, -100px) scale(1); }
+            25% { transform: translate(150px, 80px) scale(1.1); }
+            50% { transform: translate(-100px, 150px) scale(0.9); }
+            75% { transform: translate(200px, -50px) scale(1.05); }
+            100% { transform: translate(-150px, -150px) scale(1); }
+        }
+        
+        /* گرید نقاط متحرک */
+        .particle-grid {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.1) 1px, transparent 1px);
+            background-size: 80px 80px, 100px 100px;
+            animation: gridMove 40s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 80px 80px, 100px 100px; }
         }
         
         /* کانتینر اصلی */
         .main-container {
             max-width: 500px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 25px;
             position: relative;
             z-index: 1;
         }
         
         /* هدر با افکت ویژه */
-        .header {
+        .main-header {
             text-align: center;
             margin-bottom: 40px;
-            padding: 40px 25px;
+            padding: 45px 30px;
             background: var(--glass);
-            backdrop-filter: blur(25px);
-            border-radius: 35px;
+            backdrop-filter: blur(30px);
+            border-radius: 32px;
             border: 1px solid var(--glass-border);
             position: relative;
             overflow: hidden;
             box-shadow: var(--shadow);
-            transform-style: preserve-3d;
-            perspective: 1000px;
         }
         
-        .header::before {
+        .main-header::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 4px;
-            background: var(--gradient-rainbow);
-            animation: rainbow 3s linear infinite;
+            background: var(--gradient-primary);
+            animation: rainbowBorder 3s linear infinite;
         }
         
-        @keyframes rainbow {
+        @keyframes rainbowBorder {
             0% { background-position: 0% 50%; }
             100% { background-position: 100% 50%; }
         }
         
-        .header::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.03) 50%, transparent 70%);
-            animation: shine 3s infinite;
-        }
-        
-        @keyframes shine {
-            0% { transform: translateX(-100%) skewX(-15deg); }
-            100% { transform: translateX(200%) skewX(-15deg); }
-        }
-        
-        .logo-container {
+        .logo-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 25px;
-            margin-bottom: 25px;
+            gap: 30px;
+            margin-bottom: 30px;
         }
         
-        .logo-icon {
-            width: 100px;
-            height: 100px;
+        .logo-orb {
+            width: 120px;
+            height: 120px;
             background: var(--gradient-primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 42px;
+            font-size: 48px;
             color: white;
             box-shadow: 
-                0 0 60px rgba(99, 102, 241, 0.6),
-                inset 0 0 20px rgba(255, 255, 255, 0.3);
+                0 0 80px rgba(99, 102, 241, 0.7),
+                inset 0 0 30px rgba(255, 255, 255, 0.3);
             animation: 
-                pulse 2s infinite,
-                float 6s ease-in-out infinite;
+                orbPulse 2s infinite,
+                orbFloat 6s ease-in-out infinite;
             position: relative;
             overflow: hidden;
         }
         
-        .logo-icon::before {
+        .logo-orb::before {
             content: '';
             position: absolute;
-            width: 150%;
-            height: 150%;
-            background: conic-gradient(transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: rotate 4s linear infinite;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: orbRotate 4s linear infinite;
         }
         
-        @keyframes rotate {
+        @keyframes orbPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 80px rgba(99, 102, 241, 0.7); }
+            50% { transform: scale(1.08); box-shadow: 0 0 100px rgba(99, 102, 241, 0.9); }
+        }
+        
+        @keyframes orbFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(3deg); }
+            66% { transform: translateY(15px) rotate(-3deg); }
+        }
+        
+        @keyframes orbRotate {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(99, 102, 241, 0.6); }
-            50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(99, 102, 241, 0.8); }
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            33% { transform: translateY(-15px) rotate(2deg); }
-            66% { transform: translateY(10px) rotate(-2deg); }
-        }
-        
-        .logo-text {
-            text-align: center;
-        }
-        
         .logo-title {
-            font-size: 42px;
+            font-size: 46px;
             font-weight: 900;
-            background: var(--gradient-rainbow);
+            background: var(--gradient-primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-size: 300% 300%;
-            animation: gradientText 4s ease infinite;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             letter-spacing: -1px;
-            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        @keyframes gradientText {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
         
         .logo-subtitle {
             font-size: 18px;
             color: #94a3b8;
             font-weight: 300;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
         
-        /* تایپوگرافی انیمیشنی */
-        .typing-text {
-            display: inline-block;
-            overflow: hidden;
-            border-right: 3px solid var(--primary);
-            white-space: nowrap;
-            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
-        }
-        
-        @keyframes typing {
-            from { width: 0 }
-            to { width: 100% }
-        }
-        
-        @keyframes blink-caret {
-            from, to { border-color: transparent }
-            50% { border-color: var(--primary) }
-        }
-        
-        /* کارت‌های سه‌بعدی */
-        .card {
+        /* کارت‌های شیشه‌ای پیشرفته */
+        .glass-card {
             background: var(--glass);
-            backdrop-filter: blur(25px);
-            border-radius: 30px;
-            padding: 35px;
+            backdrop-filter: blur(30px);
+            border-radius: 28px;
+            padding: 40px 35px;
             margin-bottom: 30px;
             border: 1px solid var(--glass-border);
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -264,258 +224,181 @@
             box-shadow: 
                 0 20px 40px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transform-style: preserve-3d;
-            perspective: 1000px;
         }
         
-        .card:hover {
-            transform: 
-                translateY(-10px) 
-                rotateX(5deg) 
-                rotateY(-2deg);
-            border-color: rgba(99, 102, 241, 0.4);
+        .glass-card:hover {
+            transform: translateY(-12px);
+            border-color: rgba(99, 102, 241, 0.5);
             box-shadow: 
                 0 30px 60px rgba(0, 0, 0, 0.4),
-                0 0 100px rgba(99, 102, 241, 0.2),
+                0 0 120px rgba(99, 102, 241, 0.25),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-        
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 150px;
-            height: 150px;
-            background: var(--gradient-glass);
-            border-radius: 0 30px 0 0;
-            opacity: 0.3;
-            filter: blur(20px);
-        }
-        
-        .card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100px;
-            height: 100px;
-            background: var(--gradient-glass);
-            border-radius: 0 0 0 30px;
-            opacity: 0.2;
-            filter: blur(15px);
         }
         
         .card-header {
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
+            gap: 25px;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
         }
         
-        .card-icon {
-            width: 60px;
-            height: 60px;
+        .header-icon {
+            width: 70px;
+            height: 70px;
             background: var(--gradient-primary);
-            border-radius: 20px;
+            border-radius: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
+            font-size: 30px;
             color: white;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.5);
             position: relative;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
         
-        .card:hover .card-icon {
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.6);
+        .glass-card:hover .header-icon {
+            transform: scale(1.15) rotate(12deg);
+            box-shadow: 0 20px 45px rgba(99, 102, 241, 0.7);
         }
         
-        .card-icon::before {
+        .header-icon::before {
             content: '';
             position: absolute;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            width: 250%;
+            height: 250%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transform: rotate(45deg);
-            animation: shineIcon 3s infinite;
+            animation: iconShine 4s infinite;
         }
         
-        @keyframes shineIcon {
+        @keyframes iconShine {
             0% { transform: translateX(-100%) rotate(45deg); }
             100% { transform: translateX(100%) rotate(45deg); }
         }
         
         .card-title {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 800;
             color: var(--light);
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
         }
         
         /* دکمه‌های حرفه‌ای */
-        .btn {
+        .action-btn {
             width: 100%;
-            padding: 22px;
+            padding: 26px;
             border: none;
-            border-radius: 20px;
-            font-size: 20px;
-            font-weight: 700;
-            margin: 18px 0;
+            border-radius: 22px;
+            font-size: 22px;
+            font-weight: 800;
+            margin: 22px 0;
             cursor: pointer;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 18px;
-            font-family: 'Vazirmatn', sans-serif;
+            gap: 22px;
             position: relative;
             overflow: hidden;
-            letter-spacing: 0.5px;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            transform-style: preserve-3d;
+            letter-spacing: 0.8px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
         
-        .btn::before {
+        .action-btn::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: 0.8s;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: 1s;
         }
         
-        .btn:hover::before {
+        .action-btn:hover::before {
             left: 100%;
         }
         
-        .btn:hover {
-            transform: 
-                translateY(-5px) 
-                scale(1.02);
-            filter: brightness(1.1);
+        .action-btn:hover {
+            transform: translateY(-8px) scale(1.03);
+            filter: brightness(1.15);
         }
         
-        .btn:active {
-            transform: scale(0.98);
+        .action-btn:active {
+            transform: translateY(-2px) scale(0.98);
         }
         
-        .btn-connect {
+        .connect-btn {
             background: var(--gradient-primary);
             color: white;
             box-shadow: 
-                0 15px 35px rgba(99, 102, 241, 0.4),
-                0 0 50px rgba(99, 102, 241, 0.3);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+                0 20px 45px rgba(99, 102, 241, 0.5),
+                0 0 70px rgba(99, 102, 241, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.25);
             animation: 
-                connectPulse 2s infinite,
-                borderGlow 3s infinite;
+                btnPulse 2.5s infinite,
+                borderGlow 3.5s infinite;
         }
         
-        @keyframes connectPulse {
-            0%, 100% { box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4), 0 0 50px rgba(99, 102, 241, 0.3); }
-            50% { box-shadow: 0 20px 45px rgba(99, 102, 241, 0.6), 0 0 70px rgba(99, 102, 241, 0.5); }
+        @keyframes btnPulse {
+            0%, 100% { box-shadow: 0 20px 45px rgba(99, 102, 241, 0.5), 0 0 70px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 25px 55px rgba(99, 102, 241, 0.7), 0 0 90px rgba(99, 102, 241, 0.6); }
         }
         
         @keyframes borderGlow {
-            0%, 100% { border-color: rgba(255, 255, 255, 0.2); }
+            0%, 100% { border-color: rgba(255, 255, 255, 0.25); }
             50% { border-color: rgba(255, 255, 255, 0.5); }
         }
         
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        .success-btn {
+            background: linear-gradient(135deg, var(--secondary) 0%, #34d399 100%);
             color: white;
-            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 20px 45px rgba(16, 185, 129, 0.5);
         }
         
-        .btn-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+        .warning-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-glow) 100%);
             color: white;
-            box-shadow: 0 15px 35px rgba(245, 158, 11, 0.4);
+            box-shadow: 0 20px 45px rgba(245, 158, 11, 0.5);
         }
         
-        .btn-secondary {
-            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-            color: white;
-            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
-        }
-        
-        /* فرم‌های انیمیشنی */
-        .form-group {
-            margin: 25px 0;
-            position: relative;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 15px;
-            font-weight: 700;
-            color: #e2e8f0;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        
-        .form-input, .form-select {
-            width: 100%;
-            padding: 20px;
-            border: 2px solid #334155;
-            border-radius: 18px;
-            background: rgba(15, 23, 42, 0.7);
-            color: white;
-            font-size: 18px;
-            font-family: 'Vazirmatn', sans-serif;
-            transition: all 0.4s ease;
-            box-shadow: inset 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .form-input:focus, .form-select:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 
-                inset 0 4px 15px rgba(0, 0, 0, 0.3),
-                0 0 25px rgba(99, 102, 241, 0.3);
-            background: rgba(15, 23, 42, 0.9);
-            transform: translateY(-3px);
-        }
-        
-        /* پنل کاربر با افکت ویژه */
-        .user-panel {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
-            border-radius: 25px;
-            padding: 30px;
+        /* پنل کیف پول */
+        .wallet-panel {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+            border-radius: 28px;
+            padding: 35px;
             margin-top: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             display: none;
             animation: 
-                slideDown 0.8s ease,
-                panelGlow 4s infinite alternate;
+                panelSlide 0.8s ease,
+                panelGlow 5s infinite alternate;
             box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        
+        @keyframes panelSlide {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         @keyframes panelGlow {
-            0% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.2); }
-            100% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 50px rgba(99, 102, 241, 0.4); }
+            0% { box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 50px rgba(99, 102, 241, 0.3); }
+            100% { box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 80px rgba(99, 102, 241, 0.5); }
         }
         
         .wallet-display {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-            border-radius: 20px;
-            padding: 25px;
-            margin: 25px 0;
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-radius: 24px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid rgba(99, 102, 241, 0.4);
             position: relative;
             overflow: hidden;
         }
@@ -527,11 +410,11 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-            animation: rotateSlow 20s linear infinite;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            animation: slowRotate 25s linear infinite;
         }
         
-        @keyframes rotateSlow {
+        @keyframes slowRotate {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
@@ -539,268 +422,278 @@
         .wallet-address {
             font-family: 'Courier New', monospace;
             background: rgba(0, 0, 0, 0.4);
-            padding: 18px;
-            border-radius: 15px;
+            padding: 22px;
+            border-radius: 18px;
             word-break: break-all;
-            font-size: 16px;
+            font-size: 17px;
             color: #60a5fa;
-            margin: 20px 0;
-            border: 1px solid rgba(96, 165, 250, 0.3);
+            margin: 25px 0;
+            border: 1px solid rgba(96, 165, 250, 0.4);
             position: relative;
-            padding-right: 60px;
-            backdrop-filter: blur(10px);
+            padding-right: 70px;
+            backdrop-filter: blur(15px);
+        }
+        
+        .wallet-address::before {
+            content: '🔗';
+            position: absolute;
+            left: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 22px;
         }
         
         .balance-display {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: 900;
-            color: #10b981;
+            color: var(--secondary);
             text-align: center;
-            margin: 30px 0;
+            margin: 35px 0;
             text-shadow: 
-                0 5px 20px rgba(16, 185, 129, 0.4),
-                0 0 30px rgba(16, 185, 129, 0.3);
-            animation: balancePulse 3s infinite;
+                0 5px 25px rgba(16, 185, 129, 0.5),
+                0 0 50px rgba(16, 185, 129, 0.4);
+            animation: balanceGlow 4s infinite alternate;
         }
         
-        @keyframes balancePulse {
-            0%, 100% { text-shadow: 0 5px 20px rgba(16, 185, 129, 0.4), 0 0 30px rgba(16, 185, 129, 0.3); }
-            50% { text-shadow: 0 5px 30px rgba(16, 185, 129, 0.6), 0 0 50px rgba(16, 185, 129, 0.5); }
+        @keyframes balanceGlow {
+            0% { text-shadow: 0 5px 25px rgba(16, 185, 129, 0.5), 0 0 50px rgba(16, 185, 129, 0.4); }
+            100% { text-shadow: 0 5px 35px rgba(16, 185, 129, 0.7), 0 0 70px rgba(16, 185, 129, 0.6); }
         }
         
-        /* آمار شبکه با افکت‌های ویژه */
-        .stats-container {
+        /* آمار شبکه */
+        .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-top: 30px;
+            gap: 25px;
+            margin-top: 35px;
         }
         
-        .stat-card {
-            background: rgba(30, 41, 59, 0.6);
-            border-radius: 20px;
-            padding: 25px;
+        .stat-orb {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 24px;
+            padding: 30px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             transition: all 0.5s ease;
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
         }
         
-        .stat-card:hover {
-            transform: translateY(-8px) scale(1.05);
+        .stat-orb:hover {
+            transform: translateY(-10px) scale(1.05);
             border-color: var(--primary);
             box-shadow: 
-                0 15px 35px rgba(99, 102, 241, 0.3),
-                0 0 40px rgba(99, 102, 241, 0.2);
+                0 20px 40px rgba(99, 102, 241, 0.4),
+                0 0 60px rgba(99, 102, 241, 0.3);
         }
         
-        .stat-card::before {
+        .stat-orb::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
+            height: 5px;
             background: var(--gradient-primary);
             transform: scaleX(0);
             transform-origin: left;
-            transition: transform 0.5s ease;
+            transition: transform 0.6s ease;
         }
         
-        .stat-card:hover::before {
+        .stat-orb:hover::before {
             transform: scaleX(1);
         }
         
         .stat-value {
-            font-size: 32px;
+            font-size: 38px;
             font-weight: 900;
-            margin: 15px 0;
+            margin: 20px 0;
             color: var(--primary);
-            text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
         }
         
         .stat-label {
-            font-size: 14px;
+            font-size: 15px;
             color: #94a3b8;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             font-weight: 600;
         }
         
-        /* باکس ویژه ثبت‌نام */
-        .promo-box {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);
-            border-radius: 25px;
-            padding: 30px;
+        /* فرم‌های پیشرفته */
+        .form-group {
             margin: 30px 0;
-            border: 1px solid rgba(245, 158, 11, 0.4);
+            position: relative;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 20px;
+            font-weight: 800;
+            color: #e2e8f0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 24px;
+            border: 2px solid #334155;
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            color: white;
+            font-size: 19px;
+            font-family: inherit;
+            transition: all 0.5s ease;
+            box-shadow: inset 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 
+                inset 0 6px 20px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(99, 102, 241, 0.4);
+            background: rgba(15, 23, 42, 0.95);
+            transform: translateY(-5px);
+        }
+        
+        /* باکس ویژه */
+        .special-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.25) 100%);
+            border-radius: 28px;
+            padding: 35px;
+            margin: 35px 0;
+            border: 1px solid rgba(245, 158, 11, 0.5);
             text-align: center;
             position: relative;
             overflow: hidden;
-            animation: promoFloat 6s ease-in-out infinite;
+            animation: boxFloat 7s ease-in-out infinite;
         }
         
-        @keyframes promoFloat {
+        @keyframes boxFloat {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-15px); }
         }
         
-        .promo-box::before {
+        .special-box::before {
             content: '✨';
             position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 40px;
-            opacity: 0.4;
-            animation: twinkle 2s infinite;
+            top: 20px;
+            right: 20px;
+            font-size: 50px;
+            opacity: 0.5;
+            animation: twinkle 3s infinite;
         }
         
         @keyframes twinkle {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.2); }
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.3); }
         }
         
-        .promo-amount {
-            font-size: 56px;
+        .special-amount {
+            font-size: 64px;
             font-weight: 900;
             color: #f59e0b;
-            margin: 15px 0;
+            margin: 25px 0;
             text-shadow: 
-                0 5px 20px rgba(245, 158, 11, 0.4),
-                0 0 40px rgba(245, 158, 11, 0.3);
-            animation: amountGlow 3s infinite alternate;
+                0 5px 25px rgba(245, 158, 11, 0.5),
+                0 0 60px rgba(245, 158, 11, 0.4);
+            animation: amountPulse 4s infinite alternate;
         }
         
-        @keyframes amountGlow {
-            0% { text-shadow: 0 5px 20px rgba(245, 158, 11, 0.4), 0 0 40px rgba(245, 158, 11, 0.3); }
-            100% { text-shadow: 0 5px 30px rgba(245, 158, 11, 0.6), 0 0 60px rgba(245, 158, 11, 0.5); }
-        }
-        
-        /* پیشرفت‌بار پویا */
-        .progress-container {
-            margin: 30px 0;
-        }
-        
-        .progress-bar {
-            height: 16px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 15px 0;
-            position: relative;
-            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: var(--gradient-primary);
-            border-radius: 10px;
-            width: 0%;
-            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            animation: progressShine 2s infinite;
-        }
-        
-        @keyframes progressShine {
-            to { left: 100%; }
+        @keyframes amountPulse {
+            0% { text-shadow: 0 5px 25px rgba(245, 158, 11, 0.5), 0 0 60px rgba(245, 158, 11, 0.4); }
+            100% { text-shadow: 0 5px 35px rgba(245, 158, 11, 0.7), 0 0 80px rgba(245, 158, 11, 0.6); }
         }
         
         /* فوتر */
-        .footer {
+        .main-footer {
             text-align: center;
             margin-top: 60px;
-            padding: 40px 25px;
+            padding: 45px 35px;
             color: #64748b;
-            font-size: 14px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             position: relative;
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            border-radius: 32px;
             background: var(--glass);
         }
         
         .contract-display {
             font-family: 'Courier New', monospace;
             background: rgba(0, 0, 0, 0.4);
-            padding: 15px 25px;
-            border-radius: 15px;
-            margin: 20px 0;
-            font-size: 13px;
+            padding: 20px 30px;
+            border-radius: 18px;
+            margin: 25px 0;
+            font-size: 14px;
             color: #94a3b8;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            letter-spacing: 1.5px;
             position: relative;
             overflow: hidden;
         }
         
         .contract-display::before {
-            content: '🔗';
+            content: '🔐';
             position: absolute;
-            left: 15px;
+            left: 20px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 18px;
+            font-size: 22px;
         }
         
-        /* نوتیفیکیشن‌های پیشرفته */
-        .notification {
+        /* نوتیفیکیشن پیشرفته */
+        .advanced-notification {
             position: fixed;
             top: 40px;
             left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            padding: 25px 35px;
-            border-radius: 20px;
+            transform: translateX(-50%) translateY(-120px);
+            padding: 28px 40px;
+            border-radius: 24px;
             color: white;
-            font-weight: 700;
+            font-weight: 800;
             z-index: 2000;
             box-shadow: 
-                0 25px 50px rgba(0, 0, 0, 0.4),
-                0 0 60px rgba(99, 102, 241, 0.3);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+                0 30px 60px rgba(0, 0, 0, 0.5),
+                0 0 80px rgba(99, 102, 241, 0.4);
+            backdrop-filter: blur(35px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
             max-width: 90%;
             text-align: center;
             opacity: 0;
-            font-size: 16px;
+            font-size: 18px;
         }
         
-        .notification.show {
+        .advanced-notification.show {
             transform: translateX(-50%) translateY(0);
             opacity: 1;
         }
         
-        .notification.success {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%);
-            border-color: rgba(16, 185, 129, 0.4);
+        .advanced-notification.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.97) 0%, rgba(5, 150, 105, 0.97) 100%);
+            border-color: rgba(16, 185, 129, 0.5);
         }
         
-        .notification.error {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.95) 100%);
-            border-color: rgba(239, 68, 68, 0.4);
+        .advanced-notification.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.97) 0%, rgba(220, 38, 38, 0.97) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
         }
         
-        .notification.info {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(79, 70, 229, 0.95) 100%);
-            border-color: rgba(99, 102, 241, 0.4);
+        .advanced-notification.info {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.97) 0%, rgba(79, 70, 229, 0.97) 100%);
+            border-color: rgba(99, 102, 241, 0.5);
         }
         
         /* اسکرول بار زیبا */
         ::-webkit-scrollbar {
-            width: 10px;
+            width: 12px;
         }
         
         ::-webkit-scrollbar-track {
@@ -815,653 +708,32 @@
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--gradient-rainbow);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
         }
         
-        /* حالت موبایل */
+        /* لودر حرفه‌ای */
+        .advanced-loader {
+            width: 28px;
+            height: 28px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            display: inline-block;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+        
+        /* موبایل */
         @media (max-width: 480px) {
-            .main-container {
-                padding: 15px;
-            }
-            
-            .header {
-                padding: 30px 20px;
-            }
-            
-            .logo-title {
-                font-size: 34px;
-            }
-            
-            .card {
-                padding: 30px 20px;
-            }
-            
-            .btn {
-                padding: 20px;
-                font-size: 18px;
-            }
-            
-            .balance-display {
-                font-size: 40px;
-            }
-            
-            .promo-amount {
-                font-size: 48px;
-            }
-            
-            .stats-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
+            .main-container { padding: 20px; }
+            .main-header { padding: 35px 25px; }
+            .logo-title { font-size: 38px; }
+            .glass-card { padding: 35px 25px; }
+            .action-btn { padding: 24px; font-size: 20px; }
+            .balance-display { font-size: 48px; }
+            .special-amount { font-size: 54px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 20px; }
+            .form-input { padding: 22px; }
         }
     </style>
-    
-    <!-- Ethers.js -->
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
-    
-    <!-- Particles.js -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 </head>
-<body>
-    <!-- افکت‌های نور -->
-    <div class="light-effect light-effect-1"></div>
-    <div class="light-effect light-effect-2"></div>
-    
-    <!-- پارتیکل‌ها -->
-    <div id="particles-js"></div>
-    
-    <!-- دکمه شناور -->
-    <div class="floating-btn" onclick="scrollToTop()" style="background: var(--gradient-primary);">
-        <i class="fas fa-arrow-up"></i>
-    </div>
-    
-    <div class="main-container">
-        <!-- هدر -->
-        <header class="header animate__animated animate__fadeInDown">
-            <div class="logo-container">
-                <div class="logo-icon">
-                    <i class="fas fa-infinity"></i>
-                </div>
-                <div class="logo-text">
-                    <h1 class="logo-title">SPS MATRIX</h1>
-                    <p class="logo-subtitle typing-text">سیستم سرمایه‌گذاری نسل آینده</p>
-                </div>
-            </div>
-            
-            <div style="margin-top: 20px;">
-                <span class="badge" style="display: inline-block; background: var(--gradient-primary); color: white; padding: 10px 25px; border-radius: 50px; font-size: 15px; font-weight: 600;">
-                    <i class="fas fa-bolt"></i> SafePal Optimized
-                </span>
-            </div>
-        </header>
-        
-        <!-- کارت اتصال کیف پول -->
-        <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-            <div class="card-header">
-                <div class="card-icon">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <h2 class="card-title">اتصال کیف پول</h2>
-            </div>
-            
-            <button class="btn btn-connect" id="connectBtn">
-                <i class="fas fa-plug"></i>
-                <span id="connectText">اتصال SafePal Wallet</span>
-            </button>
-            
-            <div id="userInfo" class="user-panel">
-                <h3 style="margin-bottom: 25px; color: #e2e8f0; display: flex; align-items: center; gap: 15px;">
-                    <i class="fas fa-user-check" style="color: var(--secondary); font-size: 24px;"></i>
-                    حساب متصل شده
-                </h3>
-                
-                <div class="wallet-display">
-                    <div class="form-label">
-                        <i class="fas fa-address-card"></i>
-                        آدرس کیف پول:
-                    </div>
-                    <div class="wallet-address" id="walletAddress"></div>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <div class="form-label">
-                            <i class="fas fa-coins"></i>
-                            موجودی حساب:
-                        </div>
-                        <div class="balance-display">
-                            <span id="balance">0.00</span> <span style="font-size: 24px;">MATIC</span>
-                        </div>
-                    </div>
-                    
-                    <div class="stats-container">
-                        <div class="stat-card">
-                            <div class="stat-label">شبکه</div>
-                            <div class="stat-value" id="network">Polygon</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">وضعیت</div>
-                            <div class="stat-value" id="status" style="color: var(--secondary);">متصل</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- کارت ثبت‌نام -->
-        <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-            <div class="card-header">
-                <div class="card-icon" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%);">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <h2 class="card-title">ثبت‌نام کاربر جدید</h2>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-users"></i>
-                    آیدی آپلاین:
-                </label>
-                <input type="number" id="uplineId" class="form-input" placeholder="مثال: 1" min="1">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-sitemap"></i>
-                    موقعیت در ماتریکس:
-                </label>
-                <select id="position" class="form-select">
-                    <option value="true">👈 سمت چپ (Left)</option>
-                    <option value="false">👉 سمت راست (Right)</option>
-                </select>
-            </div>
-            
-            <div class="promo-box">
-                <div style="font-size: 20px; color: #fbbf24; margin-bottom: 15px; font-weight: 700;">
-                    <i class="fas fa-gem"></i> پیشنهاد ویژه ثبت‌نام
-                </div>
-                <div class="promo-amount">300 MATIC</div>
-                <div style="color: #fde68a; font-size: 16px; margin-top: 15px;">
-                    <i class="fas fa-star"></i>   توسعه پروژه‌های جدید
-                </div>
-            </div>
-            
-            <button class="btn btn-success" id="registerBtn">
-                <i class="fas fa-check-circle"></i>
-                ثبت‌نام در سیستم
-            </button>
-        </div>
-        
-        <!-- کارت عملیات -->
-        <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-            <div class="card-header">
-                <div class="card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">
-                    <i class="fas fa-bolt"></i>
-                </div>
-                <h2 class="card-title">عملیات سریع</h2>
-            </div>
-            
-            <div class="stats-container">
-                <button class="btn btn-warning" id="withdrawPoolBtn">
-                    <i class="fas fa-money-bill-wave"></i>
-                    برداشت از پول
-                </button>
-                
-                <button class="btn btn-warning" id="withdrawSpecialBtn">
-                    <i class="fas fa-crown"></i>
-                    برداشت ویژه
-                </button>
-            </div>
-            
-            <div class="form-group" style="margin-top: 30px;">
-                <label class="form-label">
-                    <i class="fas fa-hand-holding-usd"></i>
-                 کمک به استخر ماینر (MATIC):
-                </label>
-                <input type="number" id="contributeAmount" class="form-input" placeholder="مقدار را وارد کنید" step="0.001" min="0.001">
-            </div>
-            
-            <button class="btn btn-secondary" id="contributeBtn">
-                <i class="fas fa-donate"></i>
-                ارسال کمک
-            </button>
-        </div>
-        
-        <!-- کارت آمار شبکه -->
-        <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
-            <div class="card-header">
-                <div class="card-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <h2 class="card-title">آمار شبکه</h2>
-            </div>
-            
-            <div class="progress-container">
-                <div class="form-label">پیشرفت شبکه:</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="networkProgress" style="width: 65%;"></div>
-                </div>
-            </div>
-            
-            <div class="stats-container">
-                <div class="stat-card">
-                    <div class="stat-label">کاربران کل</div>
-                    <div class="stat-value" id="totalUsers">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">موجودی پول</div>
-                    <div class="stat-value" id="poolBalance">0</div>
-                    <div class="stat-label">MATIC</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">پول ویژه</div>
-                    <div class="stat-value" id="specialPool">0</div>
-                    <div class="stat-label">MATIC</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">ماینرها</div>
-                    <div class="stat-value" id="minerCount">0</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- فوتر -->
-        <footer class="footer animate__animated animate__fadeIn" style="animation-delay: 0.5s;">
-            <div style="margin-bottom: 25px;">
-                <div style="font-size: 18px; color: #cbd5e1; margin-bottom: 15px; font-weight: 700;">
-                    <i class="fas fa-link"></i> اطلاعات قرارداد
-                </div>
-                <div class="contract-display" id="contractAddressShort">
-                    0x7a7b06D49129B34976D07B3854d4D72D01588191
-                </div>
-            </div>
-            
-            <div style="color: #94a3b8; font-size: 13px; line-height: 1.8;">
-                <p style="margin-bottom: 10px; font-size: 16px; color: #e2e8f0;">SPS Matrix DApp • شبکه Polygon Mainnet</p>
-                <p style="margin-bottom: 10px;">طراحی Ultimate • نسخه ۴.۰</p>
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-                    <p style="color: #64748b; font-size: 12px;">
-                        <i class="fas fa-mobile-alt"></i> برای بهترین تجربه از مرورگر SafePal استفاده کنید
-                    </p>
-                </div>
-            </div>
-        </footer>
-    </div>
-    
-    <!-- نوتیفیکیشن -->
-    <div id="notification" class="notification"></div>
-
-    <script>
-        // ==================== CONFIGURATION ====================
-        const CONTRACT_ADDRESS = "0x7a7b06D49129B34976D07B3854d4D72D01588191";
-        
-        const CONTRACT_ABI = [
-            "function register(uint256 uplineCode, bool placeOnLeft) external payable",
-            "function withdrawPool() external",
-            "function withdrawSpecials() external",
-            "function contributeToMinerPool() external payable",
-            "function getUserInfo(address user) external view returns (uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,bool)",
-            "function poolBalance() external view returns(uint256)",
-            "function specialRewardPool() external view returns(uint256)",
-            "function totalUsers() external view returns(uint256)",
-            "function eligiblePoolUserCount() external view returns(uint256)"
-        ];
-        
-        // ==================== GLOBAL VARIABLES ====================
-        let provider = null;
-        let signer = null;
-        let contract = null;
-        let userAddress = null;
-        
-        // ==================== HELPER FUNCTIONS ====================
-        function showNotification(message, type = 'success', duration = 4000) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            
-            setTimeout(() => notification.classList.add('show'), 10);
-            setTimeout(() => notification.classList.remove('show'), duration);
-        }
-        
-        function formatAddress(address) {
-            if (!address) return '---';
-            return address.substring(0, 6) + '...' + address.substring(address.length - 4);
-        }
-        
-        function formatMatic(value) {
-            if (!value) return '0.00';
-            const num = parseFloat(value);
-            if (num < 0.001) return '< 0.001';
-            return num.toFixed(2);
-        }
-        
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        
-        // ==================== PARTICLES.JS CONFIG ====================
-        function initParticles() {
-            if (typeof particlesJS !== 'undefined') {
-                particlesJS('particles-js', {
-                    particles: {
-                        number: { value: 80, density: { enable: true, value_area: 800 } },
-                        color: { value: "#6366f1" },
-                        shape: { type: "circle" },
-                        opacity: { value: 0.3, random: true },
-                        size: { value: 3, random: true },
-                        line_linked: {
-                            enable: true,
-                            distance: 150,
-                            color: "#6366f1",
-                            opacity: 0.2,
-                            width: 1
-                        },
-                        move: {
-                            enable: true,
-                            speed: 2,
-                            direction: "none",
-                            random: true,
-                            straight: false,
-                            out_mode: "out",
-                            bounce: false
-                        }
-                    },
-                    interactivity: {
-                        detect_on: "canvas",
-                        events: {
-                            onhover: { enable: true, mode: "repulse" },
-                            onclick: { enable: true, mode: "push" },
-                            resize: true
-                        }
-                    },
-                    retina_detect: true
-                });
-            }
-        }
-        
-        // ==================== WALLET CONNECTION ====================
-        async function connectWallet() {
-            console.log('Connecting wallet...');
-            
-            // Detect SafePal
-            let ethereum = window.ethereum;
-            if (!ethereum && window.safepal) {
-                ethereum = window.safepal;
-                window.ethereum = ethereum;
-            }
-            
-            if (!ethereum) {
-                showNotification('❌ لطفاً در مرورگر SafePal باز کنید', 'error');
-                return;
-            }
-            
-            try {
-                // Update button state
-                const connectBtn = document.getElementById('connectBtn');
-                const connectText = document.getElementById('connectText');
-                connectBtn.innerHTML = '<div class="loader"></div> در حال اتصال...';
-                connectBtn.disabled = true;
-                connectBtn.style.animation = 'none';
-                
-                // Request accounts
-                const accounts = await ethereum.request({
-                    method: 'eth_requestAccounts'
-                });
-                
-                if (accounts.length === 0) {
-                    throw new Error('No account selected');
-                }
-                
-                userAddress = accounts[0];
-                console.log('✅ Connected:', userAddress);
-                
-                // Show user panel
-                document.getElementById('userInfo').style.display = 'block';
-                document.getElementById('walletAddress').textContent = userAddress;
-                document.getElementById('status').textContent = 'متصل';
-                document.getElementById('status').style.color = '#10b981';
-                
-                // Setup provider and contract
-                provider = new ethers.providers.Web3Provider(ethereum);
-                signer = provider.getSigner();
-                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-                
-                // Get balance
-                const balance = await provider.getBalance(userAddress);
-                const maticBalance = ethers.utils.formatEther(balance);
-                document.getElementById('balance').textContent = formatMatic(maticBalance);
-                
-                // Update network stats
-                await updateNetworkStats();
-                
-                // Update button
-                connectBtn.innerHTML = '<i class="fas fa-check"></i> <span>اتصال موفق</span>';
-                connectBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #34d399 100%)';
-                
-                showNotification('🎉 کیف پول متصل شد! موجودی: ' + formatMatic(maticBalance) + ' MATIC', 'success');
-                
-                // Listen for account changes
-                ethereum.on('accountsChanged', (newAccounts) => {
-                    if (newAccounts.length > 0) {
-                        userAddress = newAccounts[0];
-                        document.getElementById('walletAddress').textContent = userAddress;
-                        location.reload();
-                    } else {
-                        document.getElementById('userInfo').style.display = 'none';
-                    }
-                });
-                
-            } catch (error) {
-                console.error('Connection error:', error);
-                
-                // Reset button
-                const connectBtn = document.getElementById('connectBtn');
-                connectBtn.innerHTML = '<i class="fas fa-plug"></i> <span>اتصال SafePal Wallet</span>';
-                connectBtn.disabled = false;
-                connectBtn.style.animation = 'connectPulse 2s infinite, borderGlow 3s infinite';
-                
-                let errorMsg = 'خطا در اتصال';
-                if (error.code === 4001) {
-                    errorMsg = 'کاربر درخواست را رد کرد';
-                } else if (error.message.includes('not installed')) {
-                    errorMsg = 'SafePal یافت نشد';
-                }
-                
-                showNotification(`❌ ${errorMsg}`, 'error');
-            }
-        }
-        
-        // ==================== NETWORK STATS ====================
-        async function updateNetworkStats() {
-            if (!contract) return;
-            
-            try {
-                const [totalUsers, poolBalance, specialPool, minerCount] = await Promise.all([
-                    contract.totalUsers(),
-                    contract.poolBalance(),
-                    contract.specialRewardPool(),
-                    contract.eligiblePoolUserCount()
-                ]);
-                
-                document.getElementById('totalUsers').textContent = totalUsers.toString();
-                document.getElementById('poolBalance').textContent = formatMatic(ethers.utils.formatEther(poolBalance));
-                document.getElementById('specialPool').textContent = formatMatic(ethers.utils.formatEther(specialPool));
-                document.getElementById('minerCount').textContent = minerCount.toString();
-                
-                // Update progress bar
-                const progress = Math.min(parseInt(totalUsers) / 1000 * 100, 100);
-                document.getElementById('networkProgress').style.width = progress + '%';
-                
-            } catch (error) {
-                console.error('Error updating stats:', error);
-            }
-        }
-        
-        // ==================== USER REGISTRATION ====================
-        async function registerUser() {
-            if (!contract || !userAddress) {
-                showNotification('❌ لطفاً اول کیف پول را متصل کنید', 'error');
-                return;
-            }
-            
-            const uplineId = document.getElementById('uplineId').value;
-            const position = document.getElementById('position').value === 'true';
-            
-            if (!uplineId) {
-                showNotification('❌ لطفاً آیدی آپلاین را وارد کنید', 'error');
-                return;
-            }
-            
-            try {
-                const btn = document.getElementById('registerBtn');
-                btn.innerHTML = '<div class="loader"></div> در حال پردازش...';
-                btn.disabled = true;
-                
-                showNotification('⏳ ارسال تراکنش ثبت‌نام...', 'info');
-                
-                const fee = ethers.utils.parseEther("300");
-                const tx = await contract.register(uplineId, position, { 
-                    value: fee,
-                    gasLimit: 300000
-                });
-                
-                showNotification('✅ تراکنش ارسال شد! منتظر تایید...', 'success');
-                
-                await tx.wait();
-                
-                showNotification('🎉 ثبت‌نام با موفقیت انجام شد!', 'success');
-                document.getElementById('uplineId').value = '';
-                
-                await updateNetworkStats();
-                
-            } catch (error) {
-                console.error('Registration error:', error);
-                showNotification(`❌ خطا: ${error.message}`, 'error');
-            } finally {
-                const btn = document.getElementById('registerBtn');
-                btn.innerHTML = '<i class="fas fa-check-circle"></i> ثبت‌نام در سیستم';
-                btn.disabled = false;
-            }
-        }
-        
-        // ==================== OTHER FUNCTIONS ====================
-        async function withdrawPool() {
-            if (!contract) {
-                showNotification('❌ کیف پول متصل نیست', 'error');
-                return;
-            }
-            
-            try {
-                const tx = await contract.withdrawPool();
-                showNotification('⏳ در حال برداشت از پول...', 'info');
-                await tx.wait();
-                showNotification('✅ برداشت موفقیت‌آمیز بود!', 'success');
-                await updateNetworkStats();
-            } catch (error) {
-                showNotification(`❌ خطا: ${error.message}`, 'error');
-            }
-        }
-        
-        async function withdrawSpecial() {
-            if (!contract) {
-                showNotification('❌ کیف پول متصل نیست', 'error');
-                return;
-            }
-            
-            try {
-                const tx = await contract.withdrawSpecials();
-                showNotification('⏳ در حال برداشت از پول ویژه...', 'info');
-                await tx.wait();
-                showNotification('✅ برداشت ویژه موفقیت‌آمیز بود!', 'success');
-                await updateNetworkStats();
-            } catch (error) {
-                showNotification(`❌ خطا: ${error.message}`, 'error');
-            }
-        }
-        
-        async function contributeToMiner() {
-            const amount = document.getElementById('contributeAmount').value;
-            
-            if (!amount) {
-                showNotification('❌ لطفاً مقدار را وارد کنید', 'error');
-                return;
-            }
-            
-            if (!contract) {
-                showNotification('❌ کیف پول متصل نیست', 'error');
-                return;
-            }
-            
-            try {
-                const btn = document.getElementById('contributeBtn');
-                btn.innerHTML = '<div class="loader"></div> در حال ارسال...';
-                btn.disabled = true;
-                
-                const value = ethers.utils.parseEther(amount);
-                const tx = await contract.contributeToMinerPool({ 
-                    value,
-                    gasLimit: 200000
-                });
-                
-                showNotification('⏳ در حال ارسال کمک...', 'info');
-                await tx.wait();
-                
-                showNotification('✅ کمک شما با موفقیت ثبت شد!', 'success');
-                document.getElementById('contributeAmount').value = '';
-                
-            } catch (error) {
-                showNotification(`❌ خطا: ${error.message}`, 'error');
-            } finally {
-                const btn = document.getElementById('contributeBtn');
-                btn.innerHTML = '<i class="fas fa-donate"></i> ارسال کمک';
-                btn.disabled = false;
-            }
-        }
-        
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize particles
-            initParticles();
-            
-            // Setup event listeners
-            document.getElementById('connectBtn').addEventListener('click', connectWallet);
-            document.getElementById('registerBtn').addEventListener('click', registerUser);
-            document.getElementById('withdrawPoolBtn').addEventListener('click', withdrawPool);
-            document.getElementById('withdrawSpecialBtn').addEventListener('click', withdrawSpecial);
-            document.getElementById('contributeBtn').addEventListener('click', contributeToMiner);
-            
-            // Show contract address
-            document.getElementById('contractAddressShort').textContent = 
-                CONTRACT_ADDRESS.substring(0, 8) + '...' + CONTRACT_ADDRESS.substring(CONTRACT_ADDRESS.length - 8);
-            
-            // Auto-check for wallet
-            if (typeof window.ethereum !== 'undefined') {
-                window.ethereum.request({ method: 'eth_accounts' })
-                    .then(accounts => {
-                        if (accounts.length > 0) {
-                            setTimeout(() => connectWallet(), 1500);
-                        }
-                    });
-            }
-            
-            // Scroll animations
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('animate__animated', 'animate__fadeInUp');
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-            
-            document.querySelectorAll('.card').forEach(card => {
-                observer.observe(card);
-            });
-        });
-    </script>
-</body>
-</html>
