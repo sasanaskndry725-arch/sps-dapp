@@ -1,965 +1,949 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SPS DApp - نسخه نهایی (FA/EN)</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SPS DApp - Ultra Premium</title>
 
-    <!-- ethers.js (همان نسخه) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<!-- ethers.js (unchanged logic) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
 
-    <style>
-        /* ====== Variables ====== */
-        :root{
-            --primary: #3b82f6;
-            --accent: #8b5cf6;
-            --neon: #00ffd5;
-            --bg-1: #05060a;
-            --card-bg: rgba(8,12,22,0.7);
-            --muted: #94a3b8;
-            --success: #10b981;
-            --danger: #ef4444;
-        }
-        *{box-sizing:border-box;margin:0;padding:0}
-        html[dir="rtl"]{ direction: rtl; }
-        html[dir="ltr"]{ direction: ltr; }
+<style>
+  /* ----------------- Theme (Premium Elegant) ----------------- */
+  :root{
+    --bg-1: #040615;
+    --bg-2: #071029;
+    --glass: rgba(255,255,255,0.03);
+    --card: rgba(255,255,255,0.02);
+    --muted: #9fb3cf;
+    --primary: #3b82f6;
+    --accent: #8b5cf6;
+    --neon: #00ffd5;
+    --neon-2: #7c3aed;
+    --success: #10b981;
+    --danger: #ef4444;
+    --glass-border: rgba(255,255,255,0.04);
+  }
 
-        body{
-            font-family: Tahoma, Arial, sans-serif;
-            background: radial-gradient(1200px 600px at 10% 10%, rgba(139,92,246,0.08), transparent),
-                        radial-gradient(1000px 500px at 90% 90%, rgba(59,130,246,0.04), transparent),
-                        linear-gradient(180deg,#030416 0%, #081028 100%);
-            color: #e6eef8;
-            min-height:100vh;
-            padding:20px;
-        }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html[dir="rtl"]{ direction: rtl; }
+  html[dir="ltr"]{ direction: ltr; }
 
-        .container{ max-width:1200px; margin:0 auto; position:relative; }
+  body{
+    font-family: Inter, "Segoe UI", Tahoma, Arial, sans-serif;
+    background:
+      radial-gradient(800px 320px at 10% 10%, rgba(139,92,246,0.04), transparent),
+      radial-gradient(700px 280px at 90% 90%, rgba(0,255,213,0.02), transparent),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    color: #e6eef8;
+    min-height:100vh;
+    padding:20px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    overflow-x:hidden;
+  }
 
-        /* flashy header gradient animation */
-        .header{
-            display:flex; align-items:center; justify-content:space-between; gap:12px;
-            background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-            border-radius:12px; padding:14px; border:1px solid rgba(255,255,255,0.03);
-            box-shadow: 0 6px 30px rgba(59,130,246,0.06);
-            position:relative; overflow:hidden;
-        }
-        .header:before{
-            content:""; position:absolute; inset:-50% -30%; background:linear-gradient(120deg, rgba(59,130,246,0.05), rgba(139,92,246,0.06), rgba(0,255,213,0.02));
-            transform:rotate(25deg); animation:slow-slide 10s linear infinite;
-        }
-        @keyframes slow-slide { from{transform:rotate(25deg) translateX(-10%)} to{transform:rotate(25deg) translateX(10%)} }
+  /* ---------- Canvas layers (neural wave + particles + confetti) ---------- */
+  #neuralWave {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(40% 25% at 10% 20%, rgba(124,58,237,0.03), transparent),
+                radial-gradient(30% 20% at 90% 80%, rgba(0,255,213,0.02), transparent);
+    mix-blend-mode: screen;
+  }
+  #neonParticles, #confetti { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  #confetti { z-index: 10000; display:none; }
 
-        .logo{ font-weight:900; font-size:20px; background: linear-gradient(90deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
-        .status-ind{ display:flex; gap:10px; align-items:center }
-        .status-dot{ width:12px; height:12px; border-radius:50%; background:var(--danger); box-shadow:0 0 10px rgba(239,68,68,0.3) }
-        .status-dot.connected{ background:var(--success); box-shadow:0 0 14px rgba(16,185,129,0.3) }
-        .network-text{ font-weight:700; color:var(--muted) }
+  /* ---------- Container ---------- */
+  .container{ max-width:1200px; margin:0 auto; position:relative; z-index:5; }
 
-        /* language toggle */
-        .lang-switch{ display:flex; gap:8px; align-items:center }
-        .lang-btn{ padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); cursor:pointer; background:transparent; color:var(--muted); font-weight:700 }
-        .lang-btn.active{ background:linear-gradient(90deg,var(--primary),var(--accent)); color:#081226; box-shadow:0 8px 26px rgba(59,130,246,0.18) }
+  /* ---------- Header ---------- */
+  .header{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px; padding:14px; border:1px solid var(--glass-border);
+    box-shadow: 0 12px 40px rgba(11,26,43,0.6);
+    position:relative; overflow:hidden;
+    backdrop-filter: blur(6px) saturate(120%);
+  }
 
-        /* tabs */
-        .tabs{ display:flex; gap:8px; margin:16px 0; flex-wrap:wrap }
-        .tab-btn{ padding:10px 12px; border-radius:8px; background:transparent; border:1px solid rgba(255,255,255,0.02); color:var(--muted); cursor:pointer; font-weight:700 }
-        .tab-btn.active{ background:linear-gradient(90deg, rgba(59,130,246,0.14), rgba(139,92,246,0.08)); color:var(--primary); box-shadow:0 10px 30px rgba(59,130,246,0.06) }
+  /* ---------- Logo: SVG + flip to $ ---------- */
+  .logo-3d{ width:96px; height:46px; perspective:1000px; display:flex; align-items:center; justify-content:center; }
+  .logo-card{
+    width:96px; height:46px; display:flex; align-items:center; justify-content:center;
+    border-radius:10px; position:relative; transform-style:preserve-3d;
+    transition: transform 0.7s cubic-bezier(.2,.9,.3,1);
+  }
+  .logo-face{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
+  }
+  .logo-face.front svg { width:78px; height:28px; }
+  .logo-face.back { transform: rotateY(180deg); font-weight:900; font-size:20px; color:var(--neon); text-shadow: 0 0 12px rgba(0,255,213,0.18), 0 0 36px rgba(124,58,237,0.06); }
 
-        /* stats grid */
-        .stats-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin:14px 0 }
-        .stat-box{
-            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-            padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.03);
-            position:relative; overflow:hidden;
-        }
-        /* neon number pulse */
-        .stat-value{ font-weight:900; font-size:18px; color:#cfe7ff; text-shadow:0 0 12px rgba(59,130,246,0.12) }
-        .stat-label{ color:var(--muted); font-size:13px }
+  .logo-glow {
+    position:absolute; inset:-20%; z-index:-1; filter: blur(28px); opacity:0.6;
+    background: radial-gradient(circle at 20% 30%, rgba(59,130,246,0.12), transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(124,58,237,0.10), transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(0,255,213,0.06), transparent 30%);
+    border-radius:14px;
+  }
+  /* pulsing subtle glow */
+  @keyframes logoPulse { 0%{ transform:scale(0.985) } 50%{ transform:scale(1.02) } 100%{ transform:scale(0.985) } }
+  .logo-card.pulse { animation: logoPulse 3.6s ease-in-out infinite; }
 
-        /* glowing accent */
-        .glow-accent{ position:absolute; right:-60px; top:-40px; width:180px; height:180px; background: radial-gradient(circle at 30% 20%, rgba(59,130,246,0.18), transparent 30%), radial-gradient(circle at 70% 80%, rgba(139,92,246,0.12), transparent 20%); filter: blur(18px); transform:rotate(10deg); pointer-events:none }
+  /* ---------- Status / language ---------- */
+  .status-ind{ display:flex; gap:10px; align-items:center }
+  .status-dot{ width:12px; height:12px; border-radius:50%; background:var(--danger); box-shadow:0 0 10px rgba(239,68,68,0.2) }
+  .status-dot.connected{ background:var(--success); box-shadow:0 0 18px rgba(16,185,129,0.14) }
+  .network-text{ font-weight:700; color:var(--muted) }
 
-        /* grid 2 */
-        .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:12px }
-        .card{ background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)); padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.03); position:relative; overflow:hidden }
+  .lang-switch{ display:flex; gap:8px; align-items:center }
+  .lang-btn{ padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.03); cursor:pointer; background:transparent; color:var(--muted); font-weight:700 }
+  .lang-btn.active{ background: linear-gradient(90deg,var(--primary),var(--accent)); color:#041426; box-shadow:0 8px 26px rgba(59,130,246,0.12) }
 
-        /* flashy animations: neon pulse */
-        .neon-pulse{ animation:neon 2s ease-in-out infinite; }
-        @keyframes neon { 0%{ box-shadow: 0 0 6px rgba(59,130,246,0.12)} 50%{ box-shadow: 0 0 18px rgba(59,130,246,0.22)} 100%{ box-shadow: 0 0 6px rgba(59,130,246,0.12)} }
+  /* ---------- Tabs ---------- */
+  .tabs{ display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; z-index:5; }
+  .tab-btn{ padding:10px 12px; border-radius:8px; background:transparent; border:1px solid rgba(255,255,255,0.02); color:var(--muted); cursor:pointer; font-weight:700 }
+  .tab-btn.active{ background: linear-gradient(90deg, rgba(59,130,246,0.12), rgba(139,92,246,0.06)); color:var(--primary); box-shadow: 0 10px 30px rgba(59,130,246,0.06) }
 
-        /* tree */
-        .tree-container{ max-height:520px; overflow:auto; padding:10px; border-radius:8px; background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent) }
-        .node{ padding:10px; border-radius:10px; margin-bottom:10px; background: rgba(8,12,22,0.6); border:1px solid rgba(59,130,246,0.08); display:flex; justify-content:space-between; align-items:center; gap:8px; transition:transform 0.28s, box-shadow 0.28s }
-        .node:hover{ transform: translateY(-6px) scale(1.01); box-shadow: 0 12px 40px rgba(59,130,246,0.06) }
-        .meta{ color:var(--muted); font-size:13px; }
+  /* ---------- Stats / Cards (Glassmorphism + cinematic shadows) ---------- */
+  .stats-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin:14px 0; z-index:5; }
+  .stat-box{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:16px; border-radius:14px; border:1px solid var(--glass-border);
+    box-shadow: 0 12px 30px rgba(2,8,20,0.6), inset 0 1px 0 rgba(255,255,255,0.01);
+    position:relative; overflow:hidden; backdrop-filter: blur(6px) saturate(120%);
+    transition: transform .36s ease, box-shadow .36s ease;
+  }
+  .stat-box:hover { transform: translateY(-8px); box-shadow: 0 28px 60px rgba(11,26,43,0.7); }
+  .stat-label{ color:var(--muted); font-size:13px; margin-bottom:8px; }
+  .stat-value{ font-size:18px; font-weight:900; color:#dff5ff; text-shadow: 0 6px 18px rgba(59,130,246,0.06); }
 
-        .children{ margin-right:16px; padding-right:12px; border-right:2px dashed rgba(59,130,246,0.06) }
-        .toggle-btn{ background:transparent;border:1px solid rgba(255,255,255,0.03); padding:6px 8px; border-radius:8px; color:var(--primary); cursor:pointer; font-weight:700 }
+  /* fancy border accent */
+  .stat-box:after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background: linear-gradient(90deg, rgba(59,130,246,0.06), rgba(124,58,237,0.04));
+    mix-blend-mode: screen; border-radius:14px; opacity:0.3;
+  }
 
-        /* forms */
-        .form-group{ margin-bottom:12px }
-        .form-label{ color:var(--muted); font-size:13px; margin-bottom:6px; display:block }
-        input[type="text"], input[type="number"], select, textarea{ width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit }
+  /* ---------- Tree ---------- */
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:12px; z-index:5; }
+  .card{ padding:14px; border-radius:12px; border:1px solid var(--glass-border); background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); box-shadow: 0 12px 30px rgba(5,10,25,0.6); backdrop-filter: blur(6px) }
+  .tree-container{ max-height:540px; overflow:auto; padding:12px; border-radius:10px; }
+  .node{ padding:12px; border-radius:10px; margin-bottom:12px; background: rgba(12,16,28,0.6); border:1px solid rgba(59,130,246,0.06); display:flex; justify-content:space-between; align-items:center; gap:12px; transition: transform .28s, box-shadow .28s; }
+  .node:hover{ transform: translateY(-6px); box-shadow: 0 16px 40px rgba(44,95,227,0.06); }
+  .meta{ color:var(--muted); font-size:13px; }
 
-        /* buttons */
-        .btn{ padding:12px; border-radius:8px; border:none; cursor:pointer; font-weight:800 }
-        .btn-primary{ background:linear-gradient(90deg,var(--primary),var(--accent)); color:white; box-shadow:0 10px 30px rgba(59,130,246,0.08) }
-        .btn-success{ background:linear-gradient(90deg,var(--success),#34d399); color:#02160f }
-        .btn-warning{ background:linear-gradient(90deg,#f59e0b,#fbbf24); color:#2b1600 }
-        .btn-danger{ background:linear-gradient(90deg,var(--danger),#f87171); color:#2b0e0e }
+  .toggle-btn{ background:transparent;border:1px solid rgba(255,255,255,0.03); padding:6px 8px; border-radius:8px; color:var(--primary); cursor:pointer; font-weight:700 }
 
-        .btn-group{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px }
+  /* ---------- Buttons ---------- */
+  .btn{ padding:12px; border-radius:10px; border:none; cursor:pointer; font-weight:800 }
+  .btn-primary{ background: linear-gradient(90deg,var(--primary),var(--accent)); color:white; box-shadow: 0 12px 30px rgba(59,130,246,0.08); }
+  .btn-success{ background: linear-gradient(90deg,var(--success),#34d399); color:#031612; }
+  .btn-danger{ background: linear-gradient(90deg,var(--danger),#f87171); color:#2b0e0e; }
+  .btn.disabled{ opacity:0.45; pointer-events:none; filter:grayscale(0.4) }
 
-        /* status */
-        .status{ padding:12px; border-radius:8px; margin-top:10px; font-weight:800; text-align:center }
-        .status.info{ background: rgba(59,130,246,0.06); color:#60a5fa; border:1px solid rgba(59,130,246,0.06) }
-        .status.success{ background: rgba(16,185,129,0.06); color:#34d399; border:1px solid rgba(16,185,129,0.06) }
-        .status.error{ background: rgba(239,68,68,0.06); color:#fb7185; border:1px solid rgba(239,68,68,0.06) }
-        .tx-link{ color:#9ecbff; text-decoration:none; padding:6px 10px; display:inline-block; margin-top:8px; border-radius:6px; border:1px solid rgba(59,130,246,0.06) }
+  .btn-group{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px }
 
-        /* countdown card (graphic) */
-        .countdown{
-            display:flex; align-items:center; gap:10px; justify-content:center; padding:12px; border-radius:12px;
-            background:linear-gradient(90deg, rgba(59,130,246,0.06), rgba(139,92,246,0.04));
-            border:1px solid rgba(255,255,255,0.03);
-            box-shadow: 0 16px 40px rgba(139,92,246,0.06);
-            font-weight:900;
-        }
-        .time-segment{ display:flex; flex-direction:column; align-items:center; padding:8px 10px; border-radius:8px; background:rgba(0,0,0,0.3) }
-        .time-value{ font-size:18px; color:#cfe7ff; text-shadow:0 0 8px rgba(59,130,246,0.12) }
-        .time-label{ font-size:12px; color:var(--muted) }
+  /* ---------- Countdown (premium look) ---------- */
+  .countdown{ display:flex; align-items:center; gap:12px; justify-content:center; padding:12px; border-radius:12px; background: linear-gradient(90deg, rgba(59,130,246,0.04), rgba(124,58,237,0.03)); border:1px solid rgba(255,255,255,0.02); box-shadow: 0 12px 30px rgba(11,26,43,0.6); font-weight:900; }
+  .time-segment{ display:flex; flex-direction:column; align-items:center; padding:8px 12px; border-radius:8px; background: rgba(255,255,255,0.01); min-width:64px; }
+  .time-value{ font-size:18px; color:#e6f8ff; font-weight:900; text-shadow:0 8px 20px rgba(59,130,246,0.08) }
+  .time-label{ color:var(--muted); font-size:12px; }
 
-        /* loading overlay */
-        .loading{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center }
-        .spinner{ width:76px; height:76px; border-radius:50%; border:6px solid rgba(255,255,255,0.06); border-top-color:var(--neon); animation:spin 1s linear infinite }
-        @keyframes spin { to{ transform:rotate(360deg) } }
+  /* ---------- Loading ---------- */
+  .loading{ display:none; position:fixed; inset:0; background: rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center }
+  .spinner{ width:80px; height:80px; border-radius:50%; border:6px solid rgba(255,255,255,0.04); border-top-color:var(--neon); animation: spin 1s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg) } }
 
-        footer{ margin-top:22px; text-align:center; color:var(--muted); font-size:13px }
+  /* ---------- Footer ---------- */
+  footer{ margin-top:20px; text-align:center; color:var(--muted); font-size:13px; z-index:5; position:relative; }
 
-        /* confetti canvas */
-        #confetti { position:fixed; inset:0; pointer-events:none; z-index:10000; display:none }
-
-        /* responsive */
-        @media (max-width:900px){ .grid-2{ grid-template-columns:1fr } .header{ flex-direction:column; align-items:flex-start } }
-    </style>
+  /* responsive */
+  @media (max-width:980px){ .grid-2{ grid-template-columns:1fr } .header{ flex-direction:column; align-items:flex-start } .logo-3d{ margin-bottom:8px } }
+</style>
 </head>
 <body>
-    <canvas id="confetti"></canvas>
-    <div class="container">
-        <!-- header -->
-        <div class="header">
-            <div style="display:flex;align-items:center;gap:12px">
-                <div class="logo">SPS</div>
-                <div class="status-ind">
-                    <div id="statusDot" class="status-dot"></div>
-                    <div id="networkStatus" class="network-text">اتصال شبکه</div>
-                </div>
-            </div>
+  <!-- Canvas layers -->
+  <div id="neuralWave"></div>
+  <canvas id="neonParticles"></canvas>
+  <canvas id="confetti"></canvas>
 
-            <div style="display:flex;align-items:center;gap:12px">
-                <div class="lang-switch" role="tablist" aria-label="Language switch">
-                    <button id="btn-fa" class="lang-btn">FA</button>
-                    <button id="btn-en" class="lang-btn">EN</button>
-                </div>
-                <div id="connectArea">
-                    <button id="connectBtn" class="btn-primary btn">اتصال کیف پول</button>
-                </div>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="logo-3d" aria-hidden="true">
+          <div id="logoCard" class="logo-card pulse" role="img" aria-label="SPS">
+            <div class="logo-face front" id="logoFront">
+              <!-- SVG SPS logo (guaranteed render) -->
+              <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <defs>
+                  <linearGradient id="g1" x1="0" x2="1">
+                    <stop offset="0" stop-color="#3b82f6"/>
+                    <stop offset="1" stop-color="#8b5cf6"/>
+                  </linearGradient>
+                  <filter id="neon" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="6" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+                <g filter="url(#neon)">
+                  <!-- Big bold SPS text drawn as vector using <text> (safe fallback) -->
+                  <text x="50%" y="55%" text-anchor="middle" font-family="Inter, Tahoma, Arial" font-weight="800" font-size="36" fill="url(#g1)" style="letter-spacing:2px">SPS</text>
+                </g>
+              </svg>
             </div>
+            <div class="logo-face back" id="logoBack" aria-hidden="true">
+              $ 
+            </div>
+            <div class="logo-glow" aria-hidden="true"></div>
+          </div>
         </div>
 
-        <!-- tabs -->
-        <div class="tabs" id="tabsRow">
-            <button class="tab-btn active" onclick="showTab('dashboard')">داشبورد</button>
-            <button class="tab-btn" onclick="showTab('register')">ثبت‌نام</button>
-            <button class="tab-btn" onclick="showTab('miner')">ماینر</button>
-            <button class="tab-btn" onclick="showTab('actions')">عملیات</button>
-            <button class="tab-btn" onclick="showTab('admin')" id="adminTab" style="display:none">مدیریت</button>
+        <div class="status-ind" aria-hidden="true">
+          <div id="statusDot" class="status-dot"></div>
+          <div id="networkStatus" class="network-text">اتصال شبکه</div>
         </div>
+      </div>
 
-        <!-- Dashboard -->
-        <div id="dashboardTab">
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="glow-accent"></div>
-                    <div class="stat-label" id="label-poolBalance">موجودی استخر</div>
-                    <div class="stat-value neon-pulse" id="poolBalance">0 MATIC</div>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-label" id="label-minerPool">استخر ماینر</div>
-                    <div class="stat-value neon-pulse" id="minerPool">0 pToken</div>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-label" id="label-specialPool">پاداش ویژه</div>
-                    <div class="stat-value" id="specialPool">0 MATIC</div>
-                </div>
-
-                <div class="stat-box">
-                    <div class="stat-label" id="label-entryFee">کارمزد ورود</div>
-                    <div class="stat-value" id="entryFeeDisplay">0 MATIC</div>
-                </div>
-            </div>
-
-            <div class="grid-2">
-                <div class="card">
-                    <h3 id="h-userinfo">👤 اطلاعات کاربری</h3>
-                    <div id="userInfo" class="status info">کیف پول متصل نیست</div>
-                    <div class="help" id="help-userinfo">پس از اتصال کیف پول، اطلاعات و لینک تراکنش‌ها در اینجا نشان داده می‌شوند.</div>
-
-                    <div style="margin-top:12px">
-                        <div id="lastPoolTimerCard" class="countdown" title="زمان باقی‌مانده برای برداشت بعدی استخر اصلی">
-                            <div style="font-size:13px" id="lastPoolLabel">اخرین برداشت: -</div>
-                            <div id="poolTimerSegments" style="display:flex;gap:6px;margin-left:12px"></div>
-                        </div>
-
-                        <div style="height:12px"></div>
-
-                        <div id="specialWithdrawCard" class="countdown" title="زمان تا برداشت پاداش ویژه (3rd UTC)">
-                            <div style="font-weight:700;margin-right:12px" id="specialLabel">برداشت ویژه بعدی</div>
-                            <div id="specialTimerSegments" style="display:flex;gap:6px"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3 id="h-tree">🌳 ساختار درختی شما</h3>
-                    <div class="tree-container" id="treeContainer">
-                        <div class="node">🔄 ابتدا کیف پول را متصل کنید</div>
-                    </div>
-                    <div class="help" id="help-tree">روی هر گره کلیک کن تا زیرمجموعه‌ها باز/بسته شوند — تعداد زیرمجموعه‌ها کنار هر گره نمایش داده می‌شود.</div>
-                </div>
-            </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="lang-switch" role="tablist" aria-label="Language switch">
+          <button id="btn-fa" class="lang-btn">FA</button>
+          <button id="btn-en" class="lang-btn">EN</button>
         </div>
-
-        <!-- Register -->
-        <div id="registerTab" style="display:none">
-            <div class="grid-2">
-                <div class="card">
-                    <h3 id="h-register">📝 ثبت‌نام</h3>
-                    <div class="form-group">
-                        <label class="form-label" id="label-upline">کد آپلاین</label>
-                        <input id="uplineCode" class="form-input" type="number" placeholder="1" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" id="label-position">موقعیت</label>
-                        <select id="position" class="form-input">
-                            <option value="true">چپ</option>
-                            <option value="false">راست</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary" onclick="register()" id="btn-register">ثبت‌نام (300 MATIC)</button>
-                    <div id="registerResult"></div>
-                </div>
-
-                <div class="card">
-                    <h3 id="h-reginfo">📊 اطلاعات ثبت‌نام</h3>
-                    <div id="registerInfo" class="status info">پس از اتصال کیف پول، اطلاعات نمایش داده می‌شود</div>
-                </div>
-            </div>
+        <div id="connectArea">
+          <button id="connectBtn" class="btn-primary btn">اتصال کیف پول</button>
         </div>
-
-        <!-- Miner -->
-        <div id="minerTab" style="display:none">
-            <div class="grid-2">
-                <div class="card">
-                    <h3 id="h-miner">⛏️ عملیات ماینر</h3>
-                    <div class="form-group">
-                        <label class="form-label" id="label-contribution">مقدار مشارکت (MATIC)</label>
-                        <input id="contribution" class="form-input" placeholder="0.1" />
-                    </div>
-
-                    <div class="btn-group">
-                        <button class="btn btn-success" onclick="contribute()" id="btn-contrib">مشارکت</button>
-                        <button class="btn btn-primary" onclick="buyTokens()" id="btn-buy">خرید توکن ماینر</button>
-                        <!-- فروش از UI حذف شده -->
-                        <button class="btn btn-success" onclick="distribute()" id="btn-distrib">توزیع توکن‌ها</button>
-                    </div>
-
-                    <div id="minerResult"></div>
-                </div>
-
-                <div class="card">
-                    <h3 id="h-minerinfo">📊 اطلاعات ماینر</h3>
-                    <div id="minerInfo" class="status info">اطلاعات ماینر شما</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Actions -->
-        <div id="actionsTab" style="display:none">
-            <div class="grid-2">
-                <div class="card">
-                    <h3 id="h-actions">💸 برداشت از استخرها</h3>
-                    <div class="btn-group">
-                        <button class="btn btn-success" onclick="withdrawPool()">برداشت از استخر اصلی</button>
-                        <button class="btn btn-primary" onclick="withdrawSpecial()">برداشت پاداش ویژه</button>
-                    </div>
-                    <div id="withdrawResult"></div>
-                </div>
-
-                <div class="card">
-                    <h3 id="h-withdrawinfo">📈 وضعیت برداشت</h3>
-                    <div id="withdrawInfo" class="status info">وضعیت برداشت‌های شما</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Admin -->
-        <div id="adminTab" style="display:none">
-            <div class="grid-2">
-                <div class="card">
-                    <h3 id="h-admin">⚙️ تنظیمات قرارداد</h3>
-                    <div class="form-group">
-                        <label class="form-label" id="label-newFee">کارمزد جدید (wei)</label>
-                        <input id="newFee" class="form-input" placeholder="300000000000000000000" />
-                    </div>
-                    <button class="btn btn-danger" onclick="updateFee()">بروزرسانی کارمزد</button>
-                    <div id="adminResult"></div>
-                </div>
-
-                <div class="card">
-                    <h3 id="h-admin2">🚫 مدیریت ماینرها</h3>
-                    <div class="form-group">
-                        <label class="form-label" id="label-addresses">آدرس‌های حذف (با کاما جدا)</label>
-                        <textarea id="addresses" class="form-input" rows="4" placeholder="0x123...,0x456..."></textarea>
-                    </div>
-                    <button class="btn btn-danger" onclick="removeMiners()">حذف ماینرها</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="loading" id="loading"><div class="spinner"></div></div>
-
-        <footer id="footerText">SPS Network • آدرس قرارداد: 0x7a7b06D49129B34976D07B3854d4D72D01588191 • Polygon Mainnet</footer>
+      </div>
     </div>
 
-    <script>
-        /***************
-         * ترجمه‌ها و سوئیچ زبان (FA/EN LTR)
-         * تمام متن‌های قابل نمایش در این آبجکت هستند — تغییرات UI فقط متن/جهت را عوض می‌کند.
-         ***************/
-        const translations = {
-            fa: {
-                dashboard: "داشبورد", register: "ثبت‌نام", miner: "ماینر", actions: "عملیات", admin: "مدیریت",
-                connect_wallet: "اتصال کیف پول", pool_balance: "موجودی استخر", miner_pool: "استخر ماینر",
-                special_pool: "پاداش ویژه", entry_fee: "کارمزد ورود", user_info: "اطلاعات کاربری",
-                tree_title: "ساختار درختی شما", register_label: "کد آپلاین", position: "موقعیت",
-                contribution: "مقدار مشارکت (MATIC)", buy_miner: "خرید توکن ماینر", distribute: "توزیع توکن‌ها",
-                withdraw_pool: "برداشت از استخر اصلی", withdraw_special: "برداشت پاداش ویژه",
-                last_pool_label: "اخرین برداشت", special_label: "برداشت ویژه بعدی",
-                registration_fee_text: "ثبت‌نام (300 MATIC)", miner_info: "اطلاعات ماینر شما",
-                pool_timer_title: "زمان باقیمانده تا برداشت بعدی استخر اصلی"
-            },
-            en: {
-                dashboard: "Dashboard", register: "Register", miner: "Miner", actions: "Actions", admin: "Admin",
-                connect_wallet: "Connect Wallet", pool_balance: "Pool Balance", miner_pool: "Miner Pool",
-                special_pool: "Special Reward", entry_fee: "Entry Fee", user_info: "User Info",
-                tree_title: "Your Tree Structure", register_label: "Upline Code", position: "Position",
-                contribution: "Contribution (MATIC)", buy_miner: "Buy Miner Token", distribute: "Distribute Tokens",
-                withdraw_pool: "Withdraw Main Pool", withdraw_special: "Withdraw Special", last_pool_label: "Last Withdraw",
-                special_label: "Next Special Withdraw", registration_fee_text: "Register (300 MATIC)", miner_info: "Your Miner Info",
-                pool_timer_title: "Time until next main-pool withdraw"
-            }
-        };
+    <!-- Tabs -->
+    <div class="tabs" id="tabsRow">
+      <button class="tab-btn active" onclick="showTab('dashboard')">داشبورد</button>
+      <button class="tab-btn" onclick="showTab('register')">ثبت‌نام</button>
+      <button class="tab-btn" onclick="showTab('miner')">ماینر</button>
+      <button class="tab-btn" onclick="showTab('actions')">عملیات</button>
+      <button class="tab-btn" onclick="showTab('admin')" id="adminTab" style="display:none">مدیریت</button>
+    </div>
 
-        let lang = 'fa'; // default (user requested FA + EN support)
-        function t(key){
-            return translations[lang] && translations[lang][key] ? translations[lang][key] : key;
-        }
+    <!-- Dashboard -->
+    <div id="dashboardTab">
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label" id="label-poolBalance">موجودی استخر</div>
+          <div class="stat-value" id="poolBalance">0 MATIC</div>
+        </div>
 
-        // ======= constants (unchanged logic) =======
-        const CONTRACT_ADDRESS = "0x7a7b06D49129B34976D07B3854d4D72D01588191";
-        const POLYGON_CHAIN_ID = "0x89";
-        const ENTRY_FEE = "300000000000000000000"; // 300 MATIC
+        <div class="stat-box">
+          <div class="stat-label" id="label-minerPool">استخر ماینر</div>
+          <div class="stat-value" id="minerPool">0 pToken</div>
+        </div>
 
-        // === ABI unchanged ===
-        const CONTRACT_ABI = [ /* full ABI (unchanged) */ 
-            {"inputs":[{"internalType":"address","name":"owner","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
-            {"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"message","type":"string"}],"name":"DebugMessage","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"EntryFeeUpdated","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"string","name":"poolType","type":"string"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"ManualWithdraw","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributor","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"MinerPoolContribution","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"}],"name":"MinerRemoved","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"MinerTokensBought","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"poolType","type":"string"}],"name":"NoEligibleUsers","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"address","name":"upline","type":"address"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"bool","name":"placeOnLeft","type":"bool"}],"name":"Registered","type":"event"},
-            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"}],"name":"UserMigrated","type":"event"},
-            {"inputs":[],"name":"CYCLE_DURATION","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"ENTRY_FEE","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"MAX_CYCLE_BALANCES","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"MINER_BUY_INTERVAL","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"PTOKEN_CONTRACT","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"uint256","name":"userId","type":"uint256"}],"name":"_getSpecialUserInfoForMigrateToNewFork","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"address","name":"userAddress","type":"address"},{"internalType":"uint256","name":"leftCount","type":"uint256"},{"internalType":"uint256","name":"rightCount","type":"uint256"},{"internalType":"uint256","name":"saveLeft","type":"uint256"},{"internalType":"uint256","name":"saveRight","type":"uint256"},{"internalType":"uint256","name":"balanceCount","type":"uint256"},{"internalType":"address","name":"upline","type":"address"},{"internalType":"uint256","name":"specialBalanceCount","type":"uint256"},{"internalType":"uint256","name":"totalMinerRewards","type":"uint256"},{"internalType":"uint256","name":"entryPrice","type":"uint256"},{"internalType":"bool","name":"isMiner","type":"bool"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"address[]","name":"usersToRemove","type":"address[]"}],"name":"batchRemoveMiners","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[],"name":"buyMinerTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[],"name":"contributeToMinerPool","outputs":[],"stateMutability":"payable","type":"function"},
-            {"inputs":[],"name":"distributeMinerTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[],"name":"eligiblePoolUserCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"eligibleSpecialUserCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"getMinerStats","outputs":[{"internalType":"uint256","name":"checkedOutPaidCount","type":"uint256"},{"internalType":"uint256","name":"eligibleInProgressCount","type":"uint256"},{"internalType":"uint256","name":"totalRemain","type":"uint256"},{"internalType":"uint256","name":"networkerCount","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"uint256","name":"percent","type":"uint256"}],"name":"getMinerStatsByPercent","outputs":[{"internalType":"uint256","name":"usersAbovePercent","type":"uint256"},{"internalType":"uint256","name":"totalRemaining","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"getSpecialPoolParticipants","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"getTokenPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"uint256","name":"userId","type":"uint256"}],"name":"getUserDirects","outputs":[{"internalType":"uint256","name":"leftId","type":"uint256"},{"internalType":"uint256","name":"rightId","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserInfo","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint256","name":"uplineId","type":"uint256"},{"internalType":"uint256","name":"leftCount","type":"uint256"},{"internalType":"uint256","name":"rightCount","type":"uint256"},{"internalType":"uint256","name":"saveLeft","type":"uint256"},{"internalType":"uint256","name":"saveRight","type":"uint256"},{"internalType":"uint256","name":"balanceCount","type":"uint256"},{"internalType":"uint256","name":"specialBalanceCount","type":"uint256"},{"internalType":"uint256","name":"totalMinerRewards","type":"uint256"},{"internalType":"uint256","name":"entryPrice","type":"uint256"},{"internalType":"bool","name":"isMiner","type":"bool"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"uint8","name":"day","type":"uint8"}],"name":"isCurrentTimeMatchToDay","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"isPoolWithdrawable","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"lastMinerBuyTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"lastPoolWithdrawTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"minerPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"minerTokenPool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"address","name":"userWallet","type":"address"},{"internalType":"uint256","name":"uplineId","type":"uint256"},{"internalType":"address","name":"leftChildAddress","type":"address"},{"internalType":"address","name":"rightChildAddress","type":"address"},{"internalType":"uint256","name":"oldLeftCount","type":"uint256"},{"internalType":"uint256","name":"oldRightCount","type":"uint256"},{"internalType":"uint256","name":"oldLeftSave","type":"uint256"},{"internalType":"uint256","name":"oldRightSave","type":"uint256"}],"name":"mpu","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[],"name":"ownerPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"pendingMinerFunds","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"poolBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"poolPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"poolPointCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"uint256","name":"uplineCode","type":"uint256"},{"internalType":"bool","name":"placeOnLeft","type":"bool"}],"name":"register","outputs":[],"stateMutability":"payable","type":"function"},
-            {"inputs":[],"name":"specialPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"specialPointCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"specialPointCount","stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"specialRewardPool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"totalUsers","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"updateEntryFee","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[],"name":"userTokenPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"withdrawPool","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[],"name":"withdrawSpecials","outputs":[],"stateMutability":"nonpayable","type":"function"}
-        ];
+        <div class="stat-box">
+          <div class="stat-label" id="label-specialPool">پاداش ویژه</div>
+          <div class="stat-value" id="specialPool">0 MATIC</div>
+        </div>
 
-        // ===== state =====
-        let provider, signer, contract, userAddress, isOwner = false;
+        <div class="stat-box">
+          <div class="stat-label" id="label-entryFee">کارمزد ورود</div>
+          <div class="stat-value" id="entryFeeDisplay">0 MATIC</div>
+        </div>
+      </div>
 
-        // ===== UI helpers =====
-        function setLanguage(newLang){
-            lang = newLang;
-            // direction LTR for English, RTL for Persian
-            document.documentElement.setAttribute('dir', newLang === 'en' ? 'ltr' : 'rtl');
+      <div class="grid-2">
+        <div class="card">
+          <h3 id="h-userinfo">👤 اطلاعات کاربری</h3>
+          <div id="userInfo" class="status info">کیف پول متصل نیست</div>
+          <div class="help" id="help-userinfo">پس از اتصال کیف پول، اطلاعات و لینک تراکنش‌ها در اینجا نشان داده می‌شوند.</div>
+        </div>
 
-            // swap texts
-            document.querySelectorAll('[id]').forEach(el=>{
-                // update specific known IDs
-            });
+        <div class="card">
+          <h3 id="h-tree">🌳 ساختار درختی شما</h3>
+          <div class="tree-container" id="treeContainer">
+            <div class="node">🔄 ابتدا کیف پول را متصل کنید</div>
+          </div>
+          <div class="help" id="help-tree">روی هر گره کلیک کن تا زیرمجموعه‌ها باز/بسته شوند — Left/Right IDs کنار هر گره نمایش داده می‌شود.</div>
+        </div>
+      </div>
+    </div>
 
-            // update static labels
-            document.querySelectorAll('#label-poolBalance, #label-minerPool, #label-specialPool, #label-entryFee').forEach(el=>{
-                if (el.id === 'label-poolBalance') el.textContent = t('pool_balance');
-                if (el.id === 'label-minerPool') el.textContent = t('miner_pool');
-                if (el.id === 'label-specialPool') el.textContent = t('special_pool');
-                if (el.id === 'label-entryFee') el.textContent = t('entry_fee');
-            });
+    <!-- Register -->
+    <div id="registerTab" style="display:none">
+      <div class="grid-2">
+        <div class="card">
+          <h3 id="h-register">📝 ثبت‌نام</h3>
+          <div class="form-group">
+            <label class="form-label" id="label-upline">کد آپلاین</label>
+            <input id="uplineCode" class="form-input" type="number" placeholder="1"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="label-position">موقعیت</label>
+            <select id="position" class="form-input">
+              <option value="true">چپ</option>
+              <option value="false">راست</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="register()" id="btn-register">ثبت‌نام (300 MATIC)</button>
+          <div id="registerResult"></div>
+        </div>
 
-            // tabs
-            const tabBtns = document.querySelectorAll('.tab-btn');
-            if (newLang === 'fa'){
-                tabBtns[0].textContent = translations.fa.dashboard;
-                tabBtns[1].textContent = translations.fa.register;
-                tabBtns[2].textContent = translations.fa.miner;
-                tabBtns[3].textContent = translations.fa.actions;
-                tabBtns[4].textContent = translations.fa.admin;
-            } else {
-                tabBtns[0].textContent = translations.en.dashboard;
-                tabBtns[1].textContent = translations.en.register;
-                tabBtns[2].textContent = translations.en.miner;
-                tabBtns[3].textContent = translations.en.actions;
-                tabBtns[4].textContent = translations.en.admin;
-            }
+        <div class="card">
+          <h3 id="h-reginfo">📊 اطلاعات ثبت‌نام</h3>
+          <div id="registerInfo" class="status info">پس از اتصال کیف پول، اطلاعات نمایش داده می‌شود</div>
+        </div>
+      </div>
+    </div>
 
-            // header/labels/buttons
-            document.getElementById('connectBtn').textContent = t('connect_wallet');
-            document.getElementById('h-userinfo').textContent = t('user_info');
-            document.getElementById('h-tree').textContent = t('tree_title');
-            document.getElementById('h-register').textContent = t('register');
-            document.getElementById('label-upline').textContent = t('register_label');
-            document.getElementById('label-position').textContent = t('position');
-            document.getElementById('btn-register').textContent = t('registration_fee_text');
-            document.getElementById('h-miner').textContent = t('miner');
-            document.getElementById('label-contribution').textContent = t('contribution');
-            document.getElementById('btn-buy').textContent = t('buy_miner');
-            document.getElementById('btn-distrib').textContent = t('distribute');
-            document.getElementById('h-actions').textContent = t('actions');
-            document.getElementById('h-admin').textContent = t('admin');
+    <!-- Miner -->
+    <div id="minerTab" style="display:none">
+      <div class="grid-2">
+        <div class="card">
+          <h3 id="h-miner">⛏️ عملیات ماینر</h3>
+          <div class="form-group">
+            <label class="form-label" id="label-contribution">مقدار مشارکت (MATIC)</label>
+            <input id="contribution" class="form-input" placeholder="0.1"/>
+          </div>
 
-            document.getElementById('lastPoolLabel').textContent = `${t('last_pool_label')}:`;
-            document.getElementById('specialLabel').textContent = t('special_label');
+          <div class="btn-group">
+            <button class="btn btn-success" onclick="contribute()" id="btn-contrib">مشارکت</button>
+            <button class="btn btn-primary" onclick="buyTokens()" id="btn-buy">خرید توکن ماینر</button>
+            <button class="btn btn-success" onclick="distribute()" id="btn-distrib">توزیع توکن‌ها</button>
+          </div>
 
-            // footer
-            document.getElementById('footerText').textContent = `SPS Network • Contract: ${CONTRACT_ADDRESS} • Polygon Mainnet`;
-        }
+          <div id="minerResult"></div>
+        </div>
 
-        document.getElementById('btn-fa').onclick = ()=>{ document.getElementById('btn-fa').classList.add('active'); document.getElementById('btn-en').classList.remove('active'); setLanguage('fa'); };
-        document.getElementById('btn-en').onclick = ()=>{ document.getElementById('btn-en').classList.add('active'); document.getElementById('btn-fa').classList.remove('active'); setLanguage('en'); };
+        <div class="card">
+          <h3 id="h-minerinfo">📊 اطلاعات ماینر</h3>
+          <div id="minerInfo" class="status info">اطلاعات ماینر شما</div>
+        </div>
+      </div>
+    </div>
 
-        // default UI language setup
-        document.getElementById('btn-fa').classList.add('active');
-        setLanguage('fa');
+    <!-- Actions (timers moved here) -->
+    <div id="actionsTab" style="display:none">
+      <div class="grid-2">
+        <div class="card">
+          <h3 id="h-actions">💸 عملیات برداشت</h3>
 
-        // ===== raw UI helpers (unchanged logic functions reused) =====
-        function showStatus(message, type='info', targetId='userInfo'){
-            const el = document.getElementById(targetId);
-            el.className = `status ${type}`;
-            el.innerHTML = message;
-            console.log(`[${type.toUpperCase()}] ${message.replace(/<[^>]*>/g,'')}`);
-        }
+          <div class="countdown" style="margin-bottom:12px">
+            <div style="font-weight:700;margin-right:12px" id="poolTimerLabel">اخرین برداشت</div>
+            <div id="poolTimerSegments" style="display:flex;gap:6px"></div>
+          </div>
 
-        function showLoading(show){ document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
+          <div class="countdown" style="margin-bottom:12px">
+            <div style="font-weight:700;margin-right:12px" id="specialTimerLabel">برداشت ویژه بعدی</div>
+            <div id="specialTimerSegments" style="display:flex;gap:6px"></div>
+          </div>
 
-        function showPending(txHash, targetId){
-            const link = `https://polygonscan.com/tx/${txHash}`;
-            document.getElementById(targetId).innerHTML = `
-                <div class="status info">
-                    ⏳ Transaction sent — pending...
-                    <div style="margin-top:8px"><a href="${link}" target="_blank" class="tx-link">View on Polygonscan</a></div>
-                </div>`;
-        }
+          <div class="btn-group" style="margin-top:10px">
+            <button id="withdrawMainBtn" class="btn btn-success" onclick="withdrawPool()">برداشت از استخر اصلی</button>
+            <button id="withdrawSpecialBtn" class="btn btn-primary" onclick="withdrawSpecial()">برداشت پاداش ویژه</button>
+          </div>
 
-        function showTransactionLink(txHash, targetId){
-            const link = `https://polygonscan.com/tx/${txHash}`;
-            document.getElementById(targetId).innerHTML = `
-                <div class="status success">
-                    ✅ Transaction mined
-                    <div style="margin-top:8px"><a href="${link}" target="_blank" class="tx-link">View on Polygonscan</a></div>
-                </div>`;
-        }
+          <div id="withdrawResult" style="margin-top:12px"></div>
+        </div>
 
-        function updateNetworkStatus(connected){
-            const dot = document.getElementById('statusDot');
-            const text = document.getElementById('networkStatus');
-            if(connected){ dot.classList.add('connected'); text.textContent = 'Polygon Mainnet'; }
-            else { dot.classList.remove('connected'); text.textContent = lang === 'en' ? 'Network' : 'اتصال شبکه'; }
-        }
+        <div class="card">
+          <h3 id="h-withdrawinfo">📈 وضعیت برداشت</h3>
+          <div id="withdrawInfo" class="status info">وضعیت برداشت‌های شما</div>
+        </div>
+      </div>
+    </div>
 
-        // ===== confetti simple impl (visual, not necessary for logic) =====
-        const confettiCanvas = document.getElementById('confetti');
-        const confettiCtx = confettiCanvas.getContext ? confettiCanvas.getContext('2d') : null;
-        let confettiPieces = [];
-        function resizeConfetti(){ confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeConfetti);
-        function spawnConfetti(){
-            if(!confettiCtx) return;
-            confettiCanvas.style.display = 'block';
-            for(let i=0;i<120;i++){
-                confettiPieces.push({
-                    x: Math.random()*confettiCanvas.width,
-                    y: -Math.random()*confettiCanvas.height,
-                    vx: (Math.random()-0.5)*6,
-                    vy: 2 + Math.random()*6,
-                    size: 6+Math.random()*8,
-                    color: ['#3b82f6','#8b5cf6','#00ffd5','#ffb86b'][Math.floor(Math.random()*4)],
-                    rot: Math.random()*360,
-                    rotV: (Math.random()-0.5)*10
-                });
-            }
-            let anim;
-            function draw(){
-                confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
-                confettiPieces.forEach((p, i)=>{
-                    confettiCtx.save();
-                    confettiCtx.translate(p.x,p.y);
-                    confettiCtx.rotate(p.rot*Math.PI/180);
-                    confettiCtx.fillStyle = p.color;
-                    confettiCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
-                    confettiCtx.restore();
-                    p.x += p.vx; p.y += p.vy; p.rot += p.rotV;
-                    if(p.y > confettiCanvas.height+50){ confettiPieces.splice(i,1); }
-                });
-                if(confettiPieces.length>0) anim = requestAnimationFrame(draw);
-                else { cancelAnimationFrame(anim); confettiCanvas.style.display='none'; }
-            }
-            draw();
-        }
+    <!-- Admin -->
+    <div id="adminTab" style="display:none">
+      <div class="grid-2">
+        <div class="card">
+          <h3 id="h-admin">⚙️ تنظیمات قرارداد</h3>
+          <div class="form-group">
+            <label class="form-label" id="label-newFee">کارمزد جدید (wei)</label>
+            <input id="newFee" class="form-input" placeholder="300000000000000000000"/>
+          </div>
+          <button class="btn btn-danger" onclick="updateFee()">بروزرسانی کارمزد</button>
+          <div id="adminResult"></div>
+        </div>
 
-        // ===== tree: multi-level with counts (uses contract._getSpecialUserInfoForMigrateToNewFork and getUserDirects) =====
-        async function buildTreeHtml(nodeId, depth = 0, maxDepth = 5){
-            try {
-                if (depth > maxDepth) return '';
-                // fetch counts via _getSpecialUserInfoForMigrateToNewFork which returns leftCount/rightCount
-                let info = await contract._getSpecialUserInfoForMigrateToNewFork(nodeId).catch(()=>null);
-                // get directs
-                let directs = await contract.getUserDirects(nodeId).catch(()=>[0,0]);
-                const leftId = directs[0] ? Number(directs[0]) : 0;
-                const rightId = directs[1] ? Number(directs[1]) : 0;
+        <div class="card">
+          <h3 id="h-admin2">🚫 مدیریت ماینرها</h3>
+          <div class="form-group">
+            <label class="form-label" id="label-addresses">آدرس‌های حذف (با کاما جدا)</label>
+            <textarea id="addresses" class="form-input" rows="4" placeholder="0x123...,0x456..."></textarea>
+          </div>
+          <button class="btn btn-danger" onclick="removeMiners()">حذف ماینرها</button>
+        </div>
+      </div>
+    </div>
 
-                let leftCount = 0, rightCount = 0;
-                if(info){
-                    leftCount = info[2] ? Number(info[2]) : 0;
-                    rightCount = info[3] ? Number(info[3]) : 0;
-                }
+    <div class="loading" id="loading"><div class="spinner"></div></div>
 
-                // node HTML
-                let html = `<div class="node" data-id="${nodeId}" style="margin-${document.documentElement.dir === 'rtl' ? 'right' : 'left'}:${depth*12}px">`;
-                html += `<div style="display:flex;flex-direction:column;gap:6px">`;
-                html += `<div style="font-weight:800">👤 ID: ${nodeId}</div>`;
-                html += `<div class="meta">L: ${leftCount} | R: ${rightCount} | total: ${leftCount + rightCount}</div>`;
-                html += `</div>`;
-                if(leftId > 0 || rightId > 0){
-                    html += `<div><button class="toggle-btn" data-target="${nodeId}">${lang==='en'?'[toggle]':'[باز/بسته]'}</button></div>`;
-                }
-                html += `</div>`;
+    <footer id="footerText">SPS Network • Contract: 0x7a7b06D49129B34976D07B3854d4D72D01588191 • Polygon Mainnet</footer>
+  </div>
 
-                if(leftId > 0 || rightId > 0){
-                    html += `<div class="children" id="children-${nodeId}" style="display:none">`;
-                    if(leftId > 0) html += await buildTreeHtml(leftId, depth+1, maxDepth);
-                    if(rightId > 0) html += await buildTreeHtml(rightId, depth+1, maxDepth);
-                    html += `</div>`;
-                }
-                return html;
-            } catch (e){
-                console.error('buildTreeHtml error', e);
-                return `<div class="node">⚠️ Error loading node ${nodeId}</div>`;
-            }
-        }
+<script>
+/* ================= TRANSLATIONS (Professional A) ================= */
+const translations = {
+  fa: { dashboard:"داشبورد", register:"ثبت‌نام", miner:"ماینر", actions:"عملیات", admin:"مدیریت",
+        connect_wallet:"اتصال کیف پول", pool_balance:"موجودی استخر", miner_pool:"استخر ماینر",
+        special_pool:"پاداش ویژه", entry_fee:"کارمزد ورود", user_info:"اطلاعات کاربری",
+        tree_title:"ساختار درختی شما", register_label:"کد آپلاین", position:"موقعیت",
+        contribution:"مقدار مشارکت (MATIC)", buy_miner:"خرید توکن ماینر", distribute:"توزیع توکن‌ها",
+        withdraw_pool:"برداشت از استخر اصلی", withdraw_special:"برداشت پاداش ویژه",
+        last_pool_label:"اخرین برداشت", special_label:"برداشت ویژه بعدی",
+        registration_fee_text:"ثبت‌نام (300 MATIC)", miner_info:"اطلاعات ماینر شما",
+        pool_timer_title:"زمان تا برداشت بعدی استخر اصلی" },
+  en: { dashboard:"Dashboard", register:"Register", miner:"Miner", actions:"Operations", admin:"Admin",
+        connect_wallet:"Connect Wallet", pool_balance:"Pool Balance", miner_pool:"Miner Pool",
+        special_pool:"Special Reward", entry_fee:"Entry Fee", user_info:"User Info",
+        tree_title:"Your Tree Structure", register_label:"Upline Code", position:"Position",
+        contribution:"Contribution (MATIC)", buy_miner:"Buy Miner Token", distribute:"Distribute Tokens",
+        withdraw_pool:"Withdraw Main Pool", withdraw_special:"Withdraw Special",
+        last_pool_label:"Last Withdraw", special_label:"Next Special Withdraw",
+        registration_fee_text:"Register (300 MATIC)", miner_info:"Your Miner Info",
+        pool_timer_title:"Time until next main-pool withdraw" }
+};
+let lang = localStorage.getItem('sps_lang') || 'fa';
+function t(k){ return translations[lang] && translations[lang][k] ? translations[lang][k] : k; }
 
-        async function loadTreeStructure(userId){
-            const container = document.getElementById('treeContainer');
-            container.innerHTML = `<div class="node">🔄 ${lang==='en'?'Loading tree...':'در حال بارگذاری ساختار...'}</div>`;
-            try {
-                const html = await buildTreeHtml(userId);
-                container.innerHTML = html || `<div class="node">📭 ${lang==='en'?'No descendants':'هیچ زیرمجموعه‌ای وجود ندارد'}</div>`;
-                container.querySelectorAll('.toggle-btn').forEach(btn=>{
-                    btn.onclick = ()=>{
-                        const id = btn.getAttribute('data-target');
-                        const el = document.getElementById('children-'+id);
-                        if(!el) return;
-                        el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
-                    };
-                });
-            } catch (err){
-                console.error('loadTreeStructure error', err);
-                container.innerHTML = `<div class="node">⚠️ ${lang==='en'?'Tree load error':'خطا در بارگذاری ساختار'}</div>`;
-            }
-        }
+/* ================= CONSTANTS + ABI (NO LOGIC CHANGES) ================= */
+const CONTRACT_ADDRESS = "0x7a7b06D49129B34976D07B3854d4D72D01588191";
+const POLYGON_CHAIN_ID = "0x89";
+const ENTRY_FEE = "300000000000000000000"; // 300 MATIC
 
-        // ===== sellTokens kept (UI-hidden) - no logic changes =====
-        async function sellTokens(){
-            if(!contract){ alert(lang==='en'?'Please connect wallet':'لطفاً ابتدا کیف پول را متصل کنید'); return; }
-            try{
-                showLoading(true);
-                showStatus('🔄 '+(lang==='en'?'Processing sell...':'در حال پردازش فروش توکن...'), 'info', 'minerResult');
-                await new Promise(r=>setTimeout(r,2000));
-                showStatus('⚠️ '+(lang==='en'?'sell function not in contract':'تابع فروش توکن در قرارداد موجود نیست'), 'error', 'minerResult');
-            }catch(e){
-                showStatus('❌ '+e.message, 'error', 'minerResult');
-            }finally{ showLoading(false); }
-        }
+const CONTRACT_ABI = [
+  /* ABI unchanged - same functions as before */
+  {"inputs":[{"internalType":"address","name":"owner","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
+  {"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"message","type":"string"}],"name":"DebugMessage","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"EntryFeeUpdated","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"string","name":"poolType","type":"string"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"ManualWithdraw","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"contributor","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"MinerPoolContribution","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"}],"name":"MinerRemoved","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"MinerTokensBought","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"poolType","type":"string"}],"name":"NoEligibleUsers","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"address","name":"upline","type":"address"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"bool","name":"placeOnLeft","type":"bool"}],"name":"Registered","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"}],"name":"UserMigrated","type":"event"},
+  {"inputs":[],"name":"CYCLE_DURATION","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"ENTRY_FEE","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"MAX_CYCLE_BALANCES","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"MINER_BUY_INTERVAL","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"PTOKEN_CONTRACT","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"userId","type":"uint256"}],"name":"_getSpecialUserInfoForMigrateToNewFork","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"address","name":"userAddress","type":"address"},{"internalType":"uint256","name":"leftCount","type":"uint256"},{"internalType":"uint256","name":"rightCount","type":"uint256"},{"internalType":"uint256","name":"saveLeft","type":"uint256"},{"internalType":"uint256","name":"saveRight","type":"uint256"},{"internalType":"uint256","name":"balanceCount","type":"uint256"},{"internalType":"address","name":"upline","type":"address"},{"internalType":"uint256","name":"specialBalanceCount","type":"uint256"},{"internalType":"uint256","name":"totalMinerRewards","type":"uint256"},{"internalType":"uint256","name":"entryPrice","type":"uint256"},{"internalType":"bool","name":"isMiner","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address[]","name":"usersToRemove","type":"address[]"}],"name":"batchRemoveMiners","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"buyMinerTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"contributeToMinerPool","outputs":[],"stateMutability":"payable","type":"function"},
+  {"inputs":[],"name":"distributeMinerTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"eligiblePoolUserCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"eligibleSpecialUserCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"eligibleSpecialUserCount","stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"getMinerStats","outputs":[{"internalType":"uint256","name":"checkedOutPaidCount","type":"uint256"},{"internalType":"uint256","name":"eligibleInProgressCount","type":"uint256"},{"internalType":"uint256","name":"totalRemain","type":"uint256"},{"internalType":"uint256","name":"networkerCount","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"percent","type":"uint256"}],"name":"getMinerStatsByPercent","outputs":[{"internalType":"uint256","name":"usersAbovePercent","type":"uint256"},{"internalType":"uint256","name":"totalRemaining","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"getSpecialPoolParticipants","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"getTokenPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"userId","type":"uint256"}],"name":"getUserDirects","outputs":[{"internalType":"uint256","name":"leftId","type":"uint256"},{"internalType":"uint256","name":"rightId","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserInfo","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint256","name":"uplineId","type":"uint256"},{"internalType":"uint256","name":"leftCount","type":"uint256"},{"internalType":"uint256","name":"rightCount","type":"uint256"},{"internalType":"uint256","name":"saveLeft","type":"uint256"},{"internalType":"uint256","name":"saveRight","type":"uint256"},{"internalType":"uint256","name":"balanceCount","type":"uint256"},{"internalType":"uint256","name":"specialBalanceCount","type":"uint256"},{"internalType":"uint256","name":"totalMinerRewards","type":"uint256"},{"internalType":"uint256","name":"entryPrice","type":"uint256"},{"internalType":"bool","name":"isMiner","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"uint8","name":"day","type":"uint8"}],"name":"isCurrentTimeMatchToDay","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"isPoolWithdrawable","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"lastMinerBuyTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"lastPoolWithdrawTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"minerPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"minerTokenPool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"address","name":"userWallet","type":"address"},{"internalType":"uint256","name":"uplineId","type":"uint256"},{"internalType":"address","name":"leftChildAddress","type":"address"},{"internalType":"address","name":"rightChildAddress","type":"address"},{"internalType":"uint256","name":"oldLeftCount","type":"uint256"},{"internalType":"uint256","name":"oldRightCount","type":"uint256"},{"internalType":"uint256","name":"oldLeftSave","type":"uint256"},{"internalType":"uint256","name":"oldRightSave","type":"uint256"}],"name":"mpu","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"ownerPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"pendingMinerFunds","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"poolBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"poolPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"poolPointCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"uplineCode","type":"uint256"},{"internalType":"bool","name":"placeOnLeft","type":"bool"}],"name":"register","outputs":[],"stateMutability":"payable","type":"function"},
+  {"inputs":[],"name":"specialPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"specialPointCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"specialPointCount","stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"specialRewardPool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"totalUsers","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"updateEntryFee","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"userTokenPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"withdrawPool","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"withdrawSpecials","outputs":[],"stateMutability":"nonpayable","type":"function"}
+];
 
-        // ===== connect wallet (no logic change) =====
-        async function connectWallet(){
-            if(typeof window.ethereum === 'undefined'){ showStatus('❌ '+(lang==='en'?'Wallet (MetaMask) not found':'کیف پول (مثل MetaMask) یافت نشد'),'error'); return; }
-            try{
-                showLoading(true);
-                showStatus('🔗 '+(lang==='en'?'Connecting...':'در حال اتصال...'), 'info');
-                const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
-                userAddress = accounts[0];
+/* ================= STATE ================= */
+let provider, signer, contract, userAddress, isOwner=false;
 
-                const chainId = await window.ethereum.request({ method:'eth_chainId' });
-                if(chainId !== POLYGON_CHAIN_ID){
-                    showStatus('🔄 '+(lang==='en'?'Switching to Polygon...':'تغییر به شبکه Polygon...'),'info');
-                    try{
-                        await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: POLYGON_CHAIN_ID }]});
-                    }catch(switchError){
-                        if(switchError.code === 4902){
-                            await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{
-                                chainId: POLYGON_CHAIN_ID,
-                                chainName: 'Polygon Mainnet',
-                                nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
-                                rpcUrls: ['https://polygon-rpc.com'],
-                                blockExplorerUrls: ['https://polygonscan.com']
-                            }]});
-                        }
-                    }
-                    await new Promise(r=>setTimeout(r,1200));
-                }
+/* ================= UI HELPERS ================= */
+function showStatus(message, type='info', targetId='userInfo'){
+  const el = document.getElementById(targetId);
+  if(!el) return console.log('missing target', targetId);
+  el.className = `status ${type}`;
+  el.innerHTML = message;
+  console.log(`[${type.toUpperCase()}] ${message.replace(/<[^>]*>/g,'')}`);
+}
+function showLoading(show){ const el = document.getElementById('loading'); if(el) el.style.display = show ? 'flex' : 'none'; }
+function showPending(txHash, targetId){
+  const link = `https://polygonscan.com/tx/${txHash}`;
+  const el = document.getElementById(targetId);
+  if(el) el.innerHTML = `<div class="status info">⏳ Transaction sent — pending...<div style="margin-top:8px"><a href="${link}" target="_blank" class="tx-link">View on Polygonscan</a></div></div>`;
+}
+function showTransactionLink(txHash, targetId){
+  const link = `https://polygonscan.com/tx/${txHash}`;
+  const el = document.getElementById(targetId);
+  if(el) el.innerHTML = `<div class="status success">✅ Transaction mined<div style="margin-top:8px"><a href="${link}" target="_blank" class="tx-link">View on Polygonscan</a></div></div>`;
+}
 
-                provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
-                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+/* ================= Confetti (visual) ================= */
+const confettiCanvas = document.getElementById('confetti');
+const confettiCtx = confettiCanvas.getContext ? confettiCanvas.getContext('2d') : null;
+let confettiPieces = [];
+function resizeConfetti(){ if(confettiCanvas){ confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; } }
+window.addEventListener('resize', resizeConfetti);
+function spawnConfetti(){
+  if(!confettiCtx) return;
+  confettiCanvas.style.display = 'block';
+  for(let i=0;i<120;i++){
+    confettiPieces.push({ x: Math.random()*confettiCanvas.width, y: -Math.random()*confettiCanvas.height, vx:(Math.random()-0.5)*6, vy:2+Math.random()*6, size:6+Math.random()*8, color:['#3b82f6','#8b5cf6','#00ffd5','#ffb86b'][Math.floor(Math.random()*4)], rot:Math.random()*360, rotV:(Math.random()-0.5)*10 });
+  }
+  let anim;
+  function draw(){
+    confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+    confettiPieces.forEach((p,i)=>{
+      confettiCtx.save();
+      confettiCtx.translate(p.x,p.y);
+      confettiCtx.rotate(p.rot*Math.PI/180);
+      confettiCtx.fillStyle = p.color;
+      confettiCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+      confettiCtx.restore();
+      p.x += p.vx; p.y += p.vy; p.rot += p.rotV;
+      if(p.y > confettiCanvas.height+50){ confettiPieces.splice(i,1); }
+    });
+    if(confettiPieces.length>0) requestAnimationFrame(draw);
+    else { confettiCanvas.style.display='none'; }
+  }
+  draw();
+}
 
-                // update UI connect area
-                document.getElementById('connectArea').innerHTML = `<div style="background:linear-gradient(90deg,#10b981,#34d399);color:#06281a;padding:10px;border-radius:8px;font-weight:700">✅ ${userAddress.substring(0,6)}...${userAddress.substring(userAddress.length-4)}</div>`;
+/* ================= Neon Particles (premium, optimized) ================= */
+const neonCanvas = document.getElementById('neonParticles');
+const neonCtx = neonCanvas.getContext ? neonCanvas.getContext('2d') : null;
+let neonParticles = [];
+function resizeNeon(){ if(neonCanvas){ neonCanvas.width = window.innerWidth; neonCanvas.height = window.innerHeight; } }
+window.addEventListener('resize', resizeNeon);
 
-                updateNetworkStatus(true);
-                await loadDashboard();
-                showStatus('✅ '+(lang==='en'?'Wallet connected':'کیف پول متصل شد'), 'success');
+function initNeonParticles(count=70){
+  neonParticles = [];
+  for(let i=0;i<count;i++){
+    neonParticles.push({
+      x: Math.random()*window.innerWidth,
+      y: Math.random()*window.innerHeight,
+      r: 1 + Math.random()*3,
+      vx: (Math.random()-0.5)*0.25,
+      vy: (Math.random()-0.5)*0.45,
+      hue: 200 + Math.random()*120,
+      alpha: 0.06 + Math.random()*0.24,
+      pulse: Math.random()*2 + 0.8,
+      t: Math.random()*1000
+    });
+  }
+}
+function drawNeon(){
+  if(!neonCtx) return;
+  neonCtx.clearRect(0,0,neonCanvas.width, neonCanvas.height);
+  neonParticles.forEach(p=>{
+    p.t += 0.01;
+    p.x += p.vx + Math.sin(p.t*0.4)*0.15;
+    p.y += p.vy + Math.cos(p.t*0.3)*0.12;
+    if(p.x < -60) p.x = neonCanvas.width + 60;
+    if(p.x > neonCanvas.width + 60) p.x = -60;
+    if(p.y < -60) p.y = neonCanvas.height + 60;
+    if(p.y > neonCanvas.height + 60) p.y = -60;
 
-                window.ethereum.on('accountsChanged', ()=> location.reload());
-                window.ethereum.on('chainChanged', ()=> location.reload());
+    const glowR = p.r*8 + Math.abs(Math.sin(p.t))*6;
+    const g = neonCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR*1.6);
+    g.addColorStop(0, `hsla(${p.hue},100%,65%,${p.alpha})`);
+    g.addColorStop(1, `hsla(${(p.hue+40)%360},80%,55%,${p.alpha*0.06})`);
+    neonCtx.fillStyle = g;
+    neonCtx.beginPath();
+    neonCtx.arc(p.x, p.y, glowR, 0, Math.PI*2);
+    neonCtx.fill();
 
-            }catch(err){
-                showStatus('❌ '+err.message, 'error');
-            }finally{ showLoading(false); }
-        }
+    neonCtx.fillStyle = `hsla(${p.hue},100%,70%,0.9)`;
+    neonCtx.beginPath();
+    neonCtx.arc(p.x, p.y, p.r*(1+Math.abs(Math.sin(p.t))*0.6), 0, Math.PI*2);
+    neonCtx.fill();
+  });
+  requestAnimationFrame(drawNeon);
+}
 
-        // ===== dashboard loader (minerPool displayed as pToken only) =====
-        async function loadDashboard(){
-            if(!contract) return;
-            try{
-                const [poolBalance, minerPool, specialPool, entryFee, lastPoolWithdrawTime, cycleDuration] = await Promise.all([
-                    contract.poolBalance().catch(()=>0),
-                    contract.minerTokenPool().catch(()=>0),
-                    contract.specialRewardPool().catch(()=>0),
-                    contract.ENTRY_FEE().catch(()=>ENTRY_FEE),
-                    contract.lastPoolWithdrawTime().catch(()=>0),
-                    contract.CYCLE_DURATION().catch(()=>0)
-                ]);
+/* initialize visuals */
+function startVisuals(){ resizeConfetti(); resizeNeon(); initNeonParticles(70); drawNeon(); }
 
-                document.getElementById('poolBalance').textContent = (ethers.formatEther(poolBalance).substring(0,12) || '0') + ' MATIC';
-                document.getElementById('minerPool').textContent = (ethers.formatEther(minerPool).substring(0,12) || '0') + ' pToken';
-                document.getElementById('specialPool').textContent = (ethers.formatEther(specialPool).substring(0,12) || '0') + ' MATIC';
-                document.getElementById('entryFeeDisplay').textContent = (ethers.formatEther(entryFee) || '0') + ' MATIC';
+/* ================= Language switcher (full FA/EN) ================= */
+document.getElementById('btn-fa').onclick = ()=>{
+  lang = 'fa'; localStorage.setItem('sps_lang','fa');
+  document.getElementById('btn-fa').classList.add('active'); document.getElementById('btn-en').classList.remove('active');
+  setLanguage();
+};
+document.getElementById('btn-en').onclick = ()=>{
+  lang = 'en'; localStorage.setItem('sps_lang','en');
+  document.getElementById('btn-en').classList.add('active'); document.getElementById('btn-fa').classList.remove('active');
+  setLanguage();
+};
+if(lang==='fa') document.getElementById('btn-fa').classList.add('active'); else document.getElementById('btn-en').classList.add('active');
 
-                // update pool timers (graphical)
-                startPoolTimer(Number(lastPoolWithdrawTime), Number(cycleDuration));
+function setLanguage(){
+  document.documentElement.setAttribute('dir', lang==='en' ? 'ltr' : 'rtl');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  if(lang==='fa'){ tabBtns[0].textContent = translations.fa.dashboard; tabBtns[1].textContent = translations.fa.register; tabBtns[2].textContent = translations.fa.miner; tabBtns[3].textContent = translations.fa.actions; tabBtns[4].textContent = translations.fa.admin; }
+  else { tabBtns[0].textContent = translations.en.dashboard; tabBtns[1].textContent = translations.en.register; tabBtns[2].textContent = translations.en.miner; tabBtns[3].textContent = translations.en.actions; tabBtns[4].textContent = translations.en.admin; }
+  document.getElementById('connectBtn').textContent = t('connect_wallet');
+  document.getElementById('label-poolBalance').textContent = t('pool_balance');
+  document.getElementById('label-minerPool').textContent = t('miner_pool');
+  document.getElementById('label-specialPool').textContent = t('special_pool');
+  document.getElementById('label-entryFee').textContent = t('entry_fee');
+  document.getElementById('h-userinfo').textContent = t('user_info');
+  document.getElementById('h-tree').textContent = t('tree_title');
+  document.getElementById('label-upline').textContent = t('register_label');
+  document.getElementById('label-position').textContent = t('position');
+  document.getElementById('btn-register').textContent = t('registration_fee_text');
+  document.getElementById('label-contribution').textContent = t('contribution');
+  document.getElementById('btn-buy').textContent = t('buy_miner');
+  document.getElementById('btn-distrib').textContent = t('distribute');
+  document.getElementById('poolTimerLabel').textContent = `${t('last_pool_label')}:`;
+  document.getElementById('specialTimerLabel').textContent = t('special_label');
+  document.getElementById('h-actions').textContent = (lang==='en' ? 'Operations' : 'عملیات');
+  document.getElementById('footerText').textContent = lang==='en' ? `SPS Network • Contract: ${CONTRACT_ADDRESS} • Polygon Mainnet` : `SPS Network • Contract: ${CONTRACT_ADDRESS} • Polygon Mainnet`;
+}
 
-                // special withdraw timer (3rd day of each month UTC)
-                startSpecialTimer();
+/* ================= TX handler (unchanged logic) ================= */
+async function handleTx(txPromise, targetId){
+  try{
+    showLoading(true);
+    const tx = await txPromise;
+    showPending(tx.hash, targetId);
+    const receipt = await tx.wait();
+    showTransactionLink(tx.hash, targetId);
+    spawnConfetti();
+    return receipt;
+  }catch(err){
+    const el = document.getElementById(targetId);
+    if(el) el.innerHTML = `<div class="status error">❌ ${err.message}</div>`;
+    throw err;
+  }finally{ showLoading(false); }
+}
 
-                // user info and tree
-                const userInfo = await contract.getUserInfo(userAddress).catch(()=>null);
-                if(userInfo){
-                    const userId = Number(userInfo[0]);
-                    showStatus(`<strong>👤 ${lang==='en'?'User #':'کاربر #'}${userId}</strong><br>📊 ${lang==='en'?'Balance':'موجودی'}: ${userInfo[6]}<br>🎁 ${lang==='en'?'Specials':'پاداش ویژه'}: ${userInfo[7]}<br>⛏️ ${userInfo[10] ? '✅':'❌'}<br>💰 ${lang==='en'?'Total rewards':'مجموع پاداش‌ها'}: ${ethers.formatEther(userInfo[8])} MATIC`, 'success', 'userInfo');
+/* ================= Tree: show Left/Right IDs + counts (unchanged logic) ================= */
+async function buildTreeHtml(nodeId, depth=0, maxDepth=6){
+  try{
+    if(depth > maxDepth) return '';
+    const info = await contract._getSpecialUserInfoForMigrateToNewFork(nodeId).catch(()=>null);
+    const directs = await contract.getUserDirects(nodeId).catch(()=>[0,0]);
+    const leftId = directs[0] ? Number(directs[0]) : 0;
+    const rightId = directs[1] ? Number(directs[1]) : 0;
+    let leftCount=0, rightCount=0;
+    if(info){ leftCount = info[2] ? Number(info[2]) : 0; rightCount = info[3] ? Number(info[3]) : 0; }
+    let html = `<div class="node" data-id="${nodeId}" style="margin-${document.documentElement.dir==='rtl'?'right':'left'}:${depth*12}px">`;
+    html += `<div style="display:flex;flex-direction:column;gap:6px"><div style="font-weight:800">${lang==='en'?'User #':'کاربر #'}${nodeId}</div>`;
+    html += `<div class="meta">${lang==='en'?'Left:':'چپ:'} ${leftId?('#'+leftId):'—'}  |  ${lang==='en'?'Right:':'راست:'} ${rightId?('#'+rightId):'—'}</div>`;
+    html += `<div class="meta">${lang==='en'?'L Count':'چپ'}: ${leftCount}  |  ${lang==='en'?'R Count':'راست'}: ${rightCount}  |  ${lang==='en'?'Total':'جمع'}: ${leftCount+rightCount}</div>`;
+    html += `</div>`;
+    if(leftId>0 || rightId>0) html += `<div><button class="toggle-btn" data-target="${nodeId}">${lang==='en'?'[toggle]':'[باز/بسته]'}</button></div>`;
+    html += `</div>`;
+    if(leftId>0 || rightId>0){
+      html += `<div class="children" id="children-${nodeId}" style="display:none">`;
+      if(leftId>0) html += await buildTreeHtml(leftId, depth+1, maxDepth);
+      if(rightId>0) html += await buildTreeHtml(rightId, depth+1, maxDepth);
+      html += `</div>`;
+    }
+    return html;
+  }catch(e){
+    console.error('buildTreeHtml error', e);
+    return `<div class="node">⚠️ ${lang==='en'?'Error loading node':'خطا در بارگذاری گره'} ${nodeId}</div>`;
+  }
+}
+async function loadTreeStructure(userId){
+  const container = document.getElementById('treeContainer');
+  container.innerHTML = `<div class="node">🔄 ${lang==='en'?'Loading tree...':'در حال بارگذاری ساختار...'}</div>`;
+  try{
+    const html = await buildTreeHtml(userId);
+    container.innerHTML = html || `<div class="node">📭 ${lang==='en'?'No descendants':'هیچ زیرمجموعه‌ای وجود ندارد'}</div>`;
+    container.querySelectorAll('.toggle-btn').forEach(btn=>{
+      btn.onclick = ()=>{
+        const id = btn.getAttribute('data-target');
+        const el = document.getElementById('children-'+id);
+        if(!el) return;
+        el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+      };
+    });
+  }catch(err){ console.error('loadTreeStructure error', err); container.innerHTML = `<div class="node">⚠️ ${lang==='en'?'Tree load error':'خطا در بارگذاری ساختار'}</div>`; }
+}
 
-                    // load tree recursively
-                    await loadTreeStructure(userId);
+/* ================ PRE-CHECKS BEFORE WITHDRAW ================ */
+async function canWithdrawPool(){
+  try{
+    if(!contract) return {ok:false, reason: lang==='en' ? 'Contract not initialized' : 'قرارداد آماده نیست'};
+    const withdrawable = await contract.isPoolWithdrawable().catch(()=>false);
+    if(!withdrawable) return {ok:false, reason: lang==='en' ? 'Pool is not withdrawable now' : 'در این زمان برداشت از استخر امکان‌پذیر نیست'};
+    const poolBal = await contract.poolBalance().catch(()=>0);
+    if(Number(poolBal) === 0) return {ok:false, reason: lang==='en' ? 'Pool balance is zero' : 'موجودی استخر صفر است'};
+    const eligibleCount = await contract.eligiblePoolUserCount().catch(()=>0);
+    if(Number(eligibleCount) === 0) return {ok:false, reason: lang==='en' ? 'No eligible users in this pool' : 'در این دوره کاربری واجد شرایط نیست'};
+    return {ok:true, reason: ''};
+  }catch(e){ console.error('canWithdrawPool error', e); return {ok:false, reason: lang==='en' ? 'Pre-check failed' : 'بررسی پیش از ارسال ناموفق بود'}; }
+}
 
-                    // owner check
-                    const owner = await contract.owner().catch(()=>null);
-                    if(owner && owner.toLowerCase() === userAddress.toLowerCase()){
-                        isOwner = true; document.getElementById('adminTab').style.display = 'block';
-                    }
-                }
+/* ================ CORE ACTIONS (unchanged logic) ================ */
+async function register(){ 
+  const uplineCode = document.getElementById('uplineCode').value; 
+  const position = document.getElementById('position').value === 'true'; 
+  if(!uplineCode){ alert(lang==='en'?'Please enter upline code':'لطفاً کد آپلاین را وارد کنید'); return; } 
+  try{ showStatus('🔄 '+(lang==='en'?'Registering...':'در حال ثبت‌نام...'), 'info', 'registerResult'); 
+    const txPromise = contract.register(uplineCode, position, { value: ENTRY_FEE }); 
+    const receipt = await handleTx(txPromise, 'registerResult'); 
+    showStatus('✅ '+(lang==='en'?'Registration successful':'ثبت‌نام موفق'), 'success', 'registerResult'); 
+    await loadDashboard(); 
+  }catch(err){ showStatus('❌ '+err.message, 'error', 'registerResult'); } 
+}
 
-            }catch(e){ console.error('loadDashboard error', e); }
-        }
+async function contribute(){ 
+  const amount = document.getElementById('contribution').value; 
+  if(!amount || amount <= 0){ alert(lang==='en'?'Enter valid amount':'لطفاً مقدار معتبر وارد کنید'); return; } 
+  try{ showStatus('🔄 '+(lang==='en'?'Sending contribution...':'در حال ارسال مشارکت...'), 'info', 'minerResult'); 
+    const txPromise = contract.contributeToMinerPool({ value: ethers.parseEther(amount) }); 
+    await handleTx(txPromise, 'minerResult'); 
+    showStatus('✅ '+(lang==='en'?'Contribution success':'مشارکت با موفقیت انجام شد'), 'success', 'minerResult'); 
+    await loadDashboard(); 
+  }catch(err){ showStatus('❌ '+err.message, 'error', 'minerResult'); } 
+}
 
-        // ===== timer helpers =====
-        let poolTimerInterval = null;
-        function startPoolTimer(lastWithdrawUnix = 0, cycleDurationSec = 0){
-            // lastWithdrawUnix is in seconds from contract (unix)
-            // cycleDurationSec is seconds for next withdraw cycle
-            if(poolTimerInterval) clearInterval(poolTimerInterval);
+async function buyTokens(){ 
+  try{ showStatus('🔄 '+(lang==='en'?'Buying tokens...':'در حال خرید توکن...'), 'info', 'minerResult'); 
+    const txPromise = contract.buyMinerTokens(); 
+    await handleTx(txPromise, 'minerResult'); 
+    showStatus('✅ '+(lang==='en'?'Purchase successful':'خرید توکن با موفقیت انجام شد'), 'success', 'minerResult'); 
+    await loadDashboard(); 
+  }catch(err){ showStatus('❌ '+err.message, 'error', 'minerResult'); } 
+}
 
-            function render(){
-                const now = Math.floor(Date.now()/1000);
-                const nextUnlock = (lastWithdrawUnix && cycleDurationSec) ? (lastWithdrawUnix + cycleDurationSec) : 0;
-                let remaining = nextUnlock > now ? nextUnlock - now : 0;
-                // display last withdraw time
-                const lastDate = lastWithdrawUnix ? new Date(lastWithdrawUnix*1000).toUTCString() : '—';
-                document.getElementById('lastPoolLabel').textContent = `${t('last_pool_label')}: ${ lastWithdrawUnix ? lastDate : '—' }`;
+async function distribute(){ 
+  try{ showStatus('🔄 '+(lang==='en'?'Distributing tokens...':'در حال توزیع توکن‌ها...'), 'info', 'minerResult'); 
+    const txPromise = contract.distributeMinerTokens(); 
+    await handleTx(txPromise, 'minerResult'); 
+    showStatus('✅ '+(lang==='en'?'Distributed':'توزیع توکن‌ها انجام شد'), 'success', 'minerResult'); 
+    await loadDashboard(); 
+  }catch(err){ showStatus('❌ '+err.message, 'error', 'minerResult'); } 
+}
 
-                // fill segments
-                const segContainer = document.getElementById('poolTimerSegments');
-                if(remaining === 0){
-                    segContainer.innerHTML = `<div style="font-weight:700;color:var(--success)">${lang==='en'?'Withdrawable Now':'قابل برداشت اکنون'}</div>`;
-                } else {
-                    const days = Math.floor(remaining / 86400); remaining %= 86400;
-                    const hours = Math.floor(remaining / 3600); remaining %= 3600;
-                    const minutes = Math.floor(remaining / 60);
-                    const seconds = remaining % 60;
-                    segContainer.innerHTML = `
-                        <div class="time-segment"><div class="time-value">${String(days).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Days':'روز'}</div></div>
-                        <div class="time-segment"><div class="time-value">${String(hours).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Hours':'ساعت'}</div></div>
-                        <div class="time-segment"><div class="time-value">${String(minutes).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Min':'دقیقه'}</div></div>
-                        <div class="time-segment"><div class="time-value">${String(seconds).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Sec':'ثانیه'}</div></div>
-                    `;
-                }
-            }
-            render();
-            poolTimerInterval = setInterval(render, 1000);
-        }
+/* ================ Withdraw (pre-checks) ================ */
+async function withdrawPool(){
+  try{
+    showStatus('🔄 '+(lang==='en'?'Checking pool withdraw conditions...':'در حال بررسی شرایط برداشت...'), 'info', 'withdrawResult');
+    const check = await canWithdrawPool();
+    if(!check.ok){
+      showStatus(`⛔ ${check.reason}`, 'error', 'withdrawResult');
+      const btn = document.getElementById('withdrawMainBtn'); btn.classList.add('disabled'); setTimeout(()=>btn.classList.remove('disabled'), 4000);
+      return;
+    }
+    showStatus('🔄 '+(lang==='en'?'Withdrawing main pool...':'در حال برداشت از استخر...'), 'info', 'withdrawResult');
+    const txPromise = contract.withdrawPool();
+    await handleTx(txPromise, 'withdrawResult');
+    showStatus('✅ '+(lang==='en'?'Withdraw success':'برداشت با موفقیت انجام شد'), 'success', 'withdrawResult');
+    await loadDashboard();
+  }catch(err){
+    console.error('withdrawPool error', err);
+    showStatus('❌ '+(err && err.message ? err.message : (lang==='en'?'Withdraw failed':'برداشت ناموفق')) , 'error', 'withdrawResult');
+  }
+}
 
-        let specialTimerInterval = null;
-        function startSpecialTimer(){
-            if(specialTimerInterval) clearInterval(specialTimerInterval);
-            function renderSpecial(){
-                const now = new Date();
-                // target: 3rd day of this or next month at 00:00:00 UTC (user wanted "3 میلادی هر ماه")
-                const year = now.getUTCFullYear();
-                const month = now.getUTCMonth(); // 0-index
-                const day = now.getUTCDate();
-                let target;
-                if(day < 3 || (day === 3 && now.getUTCHours() < 24)) {
-                    target = new Date(Date.UTC(year, month, 3, 0, 0, 0));
-                } else {
-                    target = new Date(Date.UTC(year, month+1, 3, 0, 0, 0));
-                }
-                let diff = Math.floor((target - now) / 1000);
-                if(diff < 0) diff = 0;
-                const days = Math.floor(diff / 86400); diff %= 86400;
-                const hours = Math.floor(diff / 3600); diff %= 3600;
-                const minutes = Math.floor(diff / 60); const seconds = diff % 60;
+async function withdrawSpecial(){
+  try{
+    const eligible = await contract.eligibleSpecialUserCount().catch(()=>0);
+    if(Number(eligible) === 0){
+      showStatus((lang==='en'?'No eligible special rewards for you at this time':'در این زمان پاداش ویژه‌ای برای شما وجود ندارد'), 'error', 'withdrawResult');
+      const btn = document.getElementById('withdrawSpecialBtn'); btn.classList.add('disabled'); setTimeout(()=>btn.classList.remove('disabled'), 4000);
+      return;
+    }
+    showStatus('🔄 '+(lang==='en'?'Withdrawing special...':'در حال برداشت پاداش ویژه...'), 'info', 'withdrawResult');
+    const txPromise = contract.withdrawSpecials();
+    await handleTx(txPromise, 'withdrawResult');
+    showStatus('✅ '+(lang==='en'?'Special withdrawn':'پاداش ویژه برداشت شد'), 'success', 'withdrawResult');
+    await loadDashboard();
+  }catch(err){ console.error('withdrawSpecial error', err); showStatus('❌ '+(err.message || (lang==='en'?'Special withdraw failed':'برداشت ویژه ناموفق')), 'error', 'withdrawResult'); }
+}
 
-                const seg = document.getElementById('specialTimerSegments');
-                seg.innerHTML = `
-                    <div class="time-segment"><div class="time-value">${String(days).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Days':'روز'}</div></div>
-                    <div class="time-segment"><div class="time-value">${String(hours).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Hours':'ساعت'}</div></div>
-                    <div class="time-segment"><div class="time-value">${String(minutes).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Min':'دقیقه'}</div></div>
-                    <div class="time-segment"><div class="time-value">${String(seconds).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Sec':'ثانیه'}</div></div>
-                `;
-            }
-            renderSpecial();
-            specialTimerInterval = setInterval(renderSpecial, 1000);
-        }
+/* ================ Timers (in Actions tab) ================ */
+let poolTimerInterval = null;
+function startPoolTimer(lastWithdrawUnix = 0, cycleDurationSec = 0){
+  if(poolTimerInterval) clearInterval(poolTimerInterval);
+  function render(){
+    const now = Math.floor(Date.now()/1000);
+    const nextUnlock = (lastWithdrawUnix && cycleDurationSec) ? (lastWithdrawUnix + cycleDurationSec) : 0;
+    let remaining = nextUnlock > now ? nextUnlock - now : 0;
+    const lastDate = lastWithdrawUnix ? new Date(lastWithdrawUnix*1000).toUTCString() : '—';
+    document.getElementById('poolTimerLabel').textContent = `${t('last_pool_label')}: ${ lastWithdrawUnix ? lastDate : '—' }`;
+    const segContainer = document.getElementById('poolTimerSegments');
+    const withdrawBtn = document.getElementById('withdrawMainBtn');
+    if(remaining === 0){
+      segContainer.innerHTML = `<div style="font-weight:700;color:var(--success)">${lang==='en'?'Withdrawable Now':'قابل برداشت اکنون'}</div>`;
+      withdrawBtn.classList.remove('disabled');
+    } else {
+      const days = Math.floor(remaining / 86400); remaining %= 86400;
+      const hours = Math.floor(remaining / 3600); remaining %= 3600;
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+      segContainer.innerHTML = `<div class="time-segment"><div class="time-value">${String(days).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Days':'روز'}</div></div>
+                                <div class="time-segment"><div class="time-value">${String(hours).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Hours':'ساعت'}</div></div>
+                                <div class="time-segment"><div class="time-value">${String(minutes).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Min':'دقیقه'}</div></div>
+                                <div class="time-segment"><div class="time-value">${String(seconds).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Sec':'ثانیه'}</div></div>`;
+      withdrawBtn.classList.add('disabled');
+    }
+  }
+  render();
+  poolTimerInterval = setInterval(render, 1000);
+}
 
-        // ===== tx handler helper (UI: pending + confetti on success) =====
-        async function handleTx(txPromise, targetId){
-            try{
-                showLoading(true);
-                const tx = await txPromise;
-                showPending(tx.hash, targetId);
-                const receipt = await tx.wait();
-                showTransactionLink(tx.hash, targetId);
-                // spawn confetti for success
-                spawnConfetti();
-                setTimeout(()=>{ confettiPieces = []; }, 5000);
-                return receipt;
-            }catch(err){
-                document.getElementById(targetId).innerHTML = `<div class="status error">❌ ${err.message}</div>`;
-                throw err;
-            }finally{
-                showLoading(false);
-            }
-        }
+let specialTimerInterval = null;
+function startSpecialTimer(){
+  if(specialTimerInterval) clearInterval(specialTimerInterval);
+  function renderSpecial(){
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
+    const day = now.getUTCDate();
+    let target;
+    if(day < 3 || (day === 3 && now.getUTCHours() < 24)) target = new Date(Date.UTC(year, month, 3, 0, 0, 0));
+    else target = new Date(Date.UTC(year, month+1, 3, 0, 0, 0));
+    let diff = Math.floor((target - now) / 1000);
+    if(diff < 0) diff = 0;
+    const days = Math.floor(diff / 86400); diff %= 86400;
+    const hours = Math.floor(diff / 3600); diff %= 3600;
+    const minutes = Math.floor(diff / 60); const seconds = diff % 60;
+    const seg = document.getElementById('specialTimerSegments');
+    seg.innerHTML = `<div class="time-segment"><div class="time-value">${String(days).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Days':'روز'}</div></div>
+                     <div class="time-segment"><div class="time-value">${String(hours).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Hours':'ساعت'}</div></div>
+                     <div class="time-segment"><div class="time-value">${String(minutes).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Min':'دقیقه'}</div></div>
+                     <div class="time-segment"><div class="time-value">${String(seconds).padStart(2,'0')}</div><div class="time-label">${lang==='en'?'Sec':'ثانیه'}</div></div>`;
+  }
+  renderSpecial();
+  specialTimerInterval = setInterval(renderSpecial, 1000);
+}
 
-        // ===== main action functions (logic unchanged) =====
-        async function register(){
-            const uplineCode = document.getElementById('uplineCode').value;
-            const position = document.getElementById('position').value === 'true';
-            if(!uplineCode){ alert(lang==='en'?'Please enter upline code':'لطفاً کد آپلاین را وارد کنید'); return; }
-            try{
-                showStatus('🔄 '+(lang==='en'?'Registering...':'در حال ثبت‌نام...'), 'info', 'registerResult');
-                const txPromise = contract.register(uplineCode, position, { value: ENTRY_FEE });
-                const receipt = await handleTx(txPromise, 'registerResult');
-                showStatus('✅ '+(lang==='en'?'Registration successful':'ثبت‌نام موفق'), 'success', 'registerResult');
-                await loadDashboard();
-            }catch(err){
-                showStatus('❌ '+err.message, 'error', 'registerResult');
-            }
-        }
+/* ================ Dashboard loader (unchanged logic) ================ */
+async function loadDashboard(){
+  if(!contract) return;
+  try{
+    const [poolBalance, minerPool, specialPool, entryFee, lastPoolWithdrawTime, cycleDuration] = await Promise.all([
+      contract.poolBalance().catch(()=>0),
+      contract.minerTokenPool().catch(()=>0),
+      contract.specialRewardPool().catch(()=>0),
+      contract.ENTRY_FEE().catch(()=>ENTRY_FEE),
+      contract.lastPoolWithdrawTime().catch(()=>0),
+      contract.CYCLE_DURATION().catch(()=>0)
+    ]);
 
-        async function contribute(){
-            const amount = document.getElementById('contribution').value;
-            if(!amount || amount <= 0){ alert(lang==='en'?'Enter valid amount':'لطفاً مقدار معتبر وارد کنید'); return; }
-            try{
-                showStatus('🔄 '+(lang==='en'?'Sending contribution...':'در حال ارسال مشارکت...'), 'info', 'minerResult');
-                const txPromise = contract.contributeToMinerPool({ value: ethers.parseEther(amount) });
-                await handleTx(txPromise, 'minerResult');
-                showStatus('✅ '+(lang==='en'?'Contribution success':'مشارکت با موفقیت انجام شد'), 'success', 'minerResult');
-                await loadDashboard();
-            }catch(err){
-                showStatus('❌ '+err.message, 'error', 'minerResult');
-            }
-        }
+    document.getElementById('poolBalance').textContent = (ethers.formatEther(poolBalance).substring(0,12) || '0') + ' MATIC';
+    document.getElementById('minerPool').textContent = (ethers.formatEther(minerPool).substring(0,12) || '0') + ' pToken';
+    document.getElementById('specialPool').textContent = (ethers.formatEther(specialPool).substring(0,12) || '0') + ' MATIC';
+    document.getElementById('entryFeeDisplay').textContent = (ethers.formatEther(entryFee) || '0') + ' MATIC';
 
-        async function buyTokens(){
-            try{
-                showStatus('🔄 '+(lang==='en'?'Buying tokens...':'در حال خرید توکن...'), 'info', 'minerResult');
-                const txPromise = contract.buyMinerTokens();
-                await handleTx(txPromise, 'minerResult');
-                showStatus('✅ '+(lang==='en'?'Purchase successful':'خرید توکن با موفقیت انجام شد'), 'success', 'minerResult');
-                await loadDashboard();
-            }catch(err){
-                showStatus('❌ '+err.message, 'error', 'minerResult');
-            }
-        }
+    // timers (actions tab)
+    startPoolTimer(Number(lastPoolWithdrawTime), Number(cycleDuration));
+    startSpecialTimer();
 
-        async function distribute(){
-            try{
-                showStatus('🔄 '+(lang==='en'?'Distributing tokens...':'در حال توزیع توکن‌ها...'), 'info', 'minerResult');
-                const txPromise = contract.distributeMinerTokens();
-                await handleTx(txPromise, 'minerResult');
-                showStatus('✅ '+(lang==='en'?'Distributed':'توزیع توکن‌ها انجام شد'), 'success', 'minerResult');
-                await loadDashboard();
-            }catch(err){
-                showStatus('❌ '+err.message, 'error', 'minerResult');
-            }
-        }
+    const userInfo = await contract.getUserInfo(userAddress).catch(()=>null);
+    if(userInfo){
+      const userId = Number(userInfo[0]);
+      showStatus(`<strong>👤 ${lang==='en'?'User #':'کاربر #'}${userId}</strong><br>📊 ${lang==='en'?'Balance':'موجودی'}: ${userInfo[6]}<br>🎁 ${lang==='en'?'Specials':'پاداش ویژه'}: ${userInfo[7]}<br>⛏️ ${userInfo[10] ? '✅':'❌'}<br>💰 ${lang==='en'?'Total rewards':'مجموع پاداش‌ها'}: ${ethers.formatEther(userInfo[8])} MATIC`, 'success', 'userInfo');
+      await loadTreeStructure(userId);
+      const owner = await contract.owner().catch(()=>null);
+      if(owner && owner.toLowerCase() === userAddress.toLowerCase()){ isOwner = true; document.getElementById('adminTab').style.display = 'block'; }
+    }
+  }catch(e){ console.error('loadDashboard error', e); }
+}
 
-        async function withdrawPool(){
-            try{
-                showStatus('🔄 '+(lang==='en'?'Withdrawing main pool...':'در حال برداشت از استخر...'), 'info', 'withdrawResult');
-                const txPromise = contract.withdrawPool();
-                await handleTx(txPromise, 'withdrawResult');
-                showStatus('✅ '+(lang==='en'?'Withdraw success':'برداشت با موفقیت انجام شد'), 'success', 'withdrawResult');
-                await loadDashboard();
-            }catch(err){
-                showStatus('❌ '+err.message, 'error', 'withdrawResult');
-            }
-        }
+/* ================ Connect wallet (unchanged logic) ================ */
+async function connectWallet(){
+  if(typeof window.ethereum === 'undefined'){ showStatus('❌ '+(lang==='en'?'Wallet (MetaMask) not found':'کیف پول (مثل MetaMask) یافت نشد'),'error'); return; }
+  try{
+    showLoading(true);
+    showStatus('🔗 '+(lang==='en'?'Connecting...':'در حال اتصال...'), 'info');
+    const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
+    userAddress = accounts[0];
+    const chainId = await window.ethereum.request({ method:'eth_chainId' });
+    if(chainId !== POLYGON_CHAIN_ID){
+      showStatus('🔄 '+(lang==='en'?'Switching to Polygon...':'تغییر به شبکه Polygon...'),'info');
+      try{ await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: POLYGON_CHAIN_ID }]}); }catch(e){ if(e.code === 4902){ await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId: POLYGON_CHAIN_ID, chainName:'Polygon Mainnet', nativeCurrency:{ name:'MATIC', symbol:'MATIC', decimals:18 }, rpcUrls:['https://polygon-rpc.com'], blockExplorerUrls:['https://polygonscan.com'] }]}); } }
+      await new Promise(r=>setTimeout(r,1200));
+    }
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    document.getElementById('connectArea').innerHTML = `<div style="background:linear-gradient(90deg,#10b981,#34d399);color:#06281a;padding:10px;border-radius:8px;font-weight:700">✅ ${userAddress.substring(0,6)}...${userAddress.substring(userAddress.length-4)}</div>`;
+    updateNetworkStatus(true);
+    await loadDashboard();
+    showStatus('✅ '+(lang==='en'?'Wallet connected':'کیف پول متصل شد'), 'success');
+    window.ethereum.on('accountsChanged', ()=> location.reload());
+    window.ethereum.on('chainChanged', ()=> location.reload());
+  }catch(err){ showStatus('❌ '+err.message, 'error'); }finally{ showLoading(false); }
+}
+document.getElementById('connectBtn').onclick = connectWallet;
 
-        async function withdrawSpecial(){
-            try{
-                showStatus('🔄 '+(lang==='en'?'Withdrawing special...':'در حال برداشت پاداش ویژه...'), 'info', 'withdrawResult');
-                const txPromise = contract.withdrawSpecials();
-                await handleTx(txPromise, 'withdrawResult');
-                showStatus('✅ '+(lang==='en'?'Special withdrawn':'پاداش ویژه برداشت شد'), 'success', 'withdrawResult');
-                await loadDashboard();
-            }catch(err){
-                showStatus('❌ '+err.message, 'error', 'withdrawResult');
-            }
-        }
+/* ================ Tabs ================ */
+function showTab(tabName){
+  const tabs = ['dashboard','register','miner','actions','admin'];
+  tabs.forEach(t => document.getElementById(t+'Tab').style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabName + 'Tab').style.display = 'block';
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    if(b.textContent.trim() === (lang==='en'? translations.en[tabName] : translations.fa[tabName])) b.classList.add('active');
+  });
+  if(tabName === 'dashboard') loadDashboard();
+}
 
-        async function updateFee(){
-            if(!isOwner){ alert(lang==='en'?'Permission denied: owner only':'❌ دسترسی رد شد: فقط مالک قرارداد'); return; }
-            const newFee = document.getElementById('newFee').value;
-            if(!newFee){ alert(lang==='en'?'Enter fee':'لطفاً کارمزد جدید را وارد کنید'); return; }
-            try{
-                showStatus('🔄 '+(lang==='en'?'Updating fee...':'در حال بروزرسانی کارمزد...'), 'info', 'adminResult');
-                const txPromise = contract.updateEntryFee(newFee);
-                await handleTx(txPromise, 'adminResult');
-                showStatus('✅ '+(lang==='en'?'Fee updated':'کارمزد بروزرسانی شد'), 'success', 'adminResult');
-                await loadDashboard();
-            }catch(err){
-                showStatus('❌ '+err.message, 'error', 'adminResult');
-            }
-        }
+/* ================ Logo flip cycle (SPS <-> $) - robust via transform & opacity ================ */
+const logoCard = document.getElementById('logoCard');
+const logoFront = document.getElementById('logoFront');
+const logoBack = document.getElementById('logoBack');
 
-        async function removeMiners(){
-            if(!isOwner){ alert(lang==='en'?'Permission denied: owner only':'❌ دسترسی رد شد: فقط مالک قرارداد'); return; }
-            const addressesText = document.getElementById('addresses').value;
-            if(!addressesText){ alert(lang==='en'?'Enter addresses':'لطفاً آدرس‌ها را وارد کنید'); return; }
-            const addresses = addressesText.split(',').map(a=>a.trim()).filter(a=>ethers.isAddress(a));
-            if(addresses.length === 0){ alert(lang==='en'?'No valid addresses':'هیچ آدرس معتبری یافت نشد'); return; }
-            try{
-                showStatus('🔄 '+(lang==='en'?'Removing miners...':'در حال حذف ماینرها...'), 'info', 'adminResult');
-                const txPromise = contract.batchRemoveMiners(addresses);
-                await handleTx(txPromise, 'adminResult');
-                showStatus('✅ '+(lang==='en'?'Removed':'حذف شدند'), 'success', 'adminResult');
-                await loadDashboard();
-            }catch(err){
-                showStatus('❌ '+err.message, 'error', 'adminResult');
-            }
-        }
+let logoCycleInterval = null;
+function showFront(){
+  logoFront.style.transform = 'rotateY(0deg) translateZ(0)';
+  logoFront.style.opacity = '1';
+  logoBack.style.transform = 'rotateY(180deg) translateZ(0)';
+  logoBack.style.opacity = '0';
+  logoCard.style.transform = 'rotateY(0deg)';
+}
+function showBack(){
+  logoFront.style.transform = 'rotateY(-180deg) translateZ(0)';
+  logoFront.style.opacity = '0';
+  logoBack.style.transform = 'rotateY(0deg) translateZ(0)';
+  logoBack.style.opacity = '1';
+  logoCard.style.transform = 'rotateY(180deg)';
+}
+function startLogoCycle(){
+  // start with SPS visible
+  showFront();
+  // flip every 3s: show back ($) for 2s, then back to front
+  logoCycleInterval = setInterval(()=>{
+    showBack();
+    setTimeout(()=> showFront(), 2000);
+  }, 3000);
+}
 
-        // ===== tabs & init =====
-        function showTab(tabName){
-            const tabs = ['dashboard','register','miner','actions','admin'];
-            tabs.forEach(t => document.getElementById(t + 'Tab').style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabName + 'Tab').style.display = 'block';
-            // find corresponding button and set active by comparing translation
-            document.querySelectorAll('.tab-btn').forEach(b=>{
-                if(b.textContent.trim() === (lang==='en'? translations.en[tabName] : translations.fa[tabName])) b.classList.add('active');
-            });
-            if(tabName === 'dashboard') loadDashboard();
-        }
+/* ================ Init visuals & logo, and optional autorun connect ================ */
+window.onload = function(){
+  startVisuals();
+  startLogoCycle();
+  setLanguage();
+  document.getElementById('connectBtn').onclick = connectWallet;
+  // auto-connect if previously authorized
+  if(typeof window.ethereum !== 'undefined'){
+    window.ethereum.request({ method:'eth_accounts' }).then(accounts=>{
+      if(accounts.length > 0) setTimeout(()=> connectWallet(), 800);
+    });
+  }
 
-        window.onload = function(){
-            resizeConfetti();
-            document.getElementById('connectBtn').onclick = connectWallet;
-            // set initial text of connect button
-            document.getElementById('connectBtn').textContent = t('connect_wallet');
-
-            // auto connect if accounts exist
-            if(typeof window.ethereum !== 'undefined'){
-                window.ethereum.request({ method:'eth_accounts' }).then(accounts=>{
-                    if(accounts.length > 0) setTimeout(()=> connectWallet(), 800);
-                });
-            }
-        };
-    </script>
+  // resize canvases
+  resizeNeon(); resizeConfetti();
+};
+</script>
 </body>
 </html>
